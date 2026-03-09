@@ -39,8 +39,12 @@ export default function AddEditModal({ entry, activeProject, onSave, onClose }: 
   const [category,     setCategory]     = useState(entry?.category ?? "");
   const [tags,         setTags]         = useState<string[]>(entry?.tags ?? []);
   const [serviceType,  setServiceType]  = useState<ServiceType>(entry?.serviceType ?? "free");
-  const [iconTab,      setIconTab]      = useState<IconTab>(entry?.icon?.type === "upload" ? "upload" : (entry?.icon?.type as IconTab) ?? "letter");
-  const [iconValue,    setIconValue]    = useState(entry?.icon?.type !== "upload" ? (entry?.icon?.value ?? "") : "");
+  const [iconTab,      setIconTab]      = useState<IconTab>(
+    (entry?.icon?.type === "url" || entry?.icon?.type === "iconify" || entry?.icon?.type === "letter")
+      ? entry.icon.type
+      : "letter"
+  );
+  const [iconValue,    setIconValue]    = useState(entry?.icon?.value ?? "");
   const [uploadedIcon, setUploadedIcon] = useState<string | null>(
     entry?.icon?.type === "url" && entry.icon.value.startsWith("/api/v1/icons/") ? entry.icon.value : null
   );

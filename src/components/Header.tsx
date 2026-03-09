@@ -91,15 +91,15 @@ export default function Header({
     }
   };
 
-  const options = [
-    { value: "mock",       label: "mockData",  icon: "si:unlock-fill",         iconClass: "text-white/40" },
+  const options: Array<{ value: string; label: string; icon: string; iconClass: string }> = [
+    { value: "mock",       label: "mockData",  icon: "si:unlock-fill",          iconClass: "text-white/40" },
     ...projects.map((p) => ({
       value: p,
       label: p,
-      icon:      unlockedProjects.includes(p) ? "si:unlock-fill"       : "si:lock-muted-fill",
-      iconClass: unlockedProjects.includes(p) ? "text-green-400"       : "text-white/40",
+      icon:      unlockedProjects.includes(p) ? "si:unlock-fill"        : "si:lock-muted-fill",
+      iconClass: unlockedProjects.includes(p) ? "text-green-400"        : "text-white/40",
     })),
-    { value: "__create__", label: "+ new", },
+    { value: "__create__", label: "+ new",     icon: "mdi:folder-plus-outline",  iconClass: "text-white/40" },
   ];
 
   const activeOption = options.find((o) => o.value === activeProject) ?? options[0];
