@@ -2,124 +2,248 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import TagBadge from "./TagBadge";
 import EntryIcon from "./EntryIcon";
-import type { IconSource, PasswordEntry, ServiceType } from "../types";
+import type { Company, CompanyAddress, IconSource, PasswordEntry, ServiceType } from "../types";
 import { ALL_CATEGORIES, ALL_TAGS } from "../data/mockData";
+import { COMMON_LOGIN_METHODS } from "../types";
 
 interface AddEditModalProps {
   entry?: PasswordEntry | null;
   activeProject: string;
+  companies?: Company[];
   onSave: (entry: Omit<PasswordEntry, "id" | "createdAt" | "updatedAt">) => void;
   onClose: () => void;
 }
+
+const ICON_TABS = ["letter", "iconify", "url", "upload"] as const;
+type IconTab = typeof ICON_TABS[number];
 
 const SERVICE_TYPES: Array<{ value: ServiceType; label: string }> = [
   { value: "free", label: "Free" },
   { value: "paid", label: "Paid" },
 ];
 
-const ICON_TABS = ["letter", "iconify", "url", "upload"] as const;
-type IconTab = typeof ICON_TABS[number];
-
 function generatePassword(len = 20): string {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
   return Array.from(crypto.getRandomValues(new Uint8Array(len)))
-    .map((b) => chars[b % chars.length])
-    .join("");
+    .map((b) => chars[b % chars.length]).join("");
 }
 
-export default function AddEditModal({ entry, activeProject, onSave, onClose }: AddEditModalProps) {
-  const isEdit = !!entry;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [title,        setTitle]        = useState(entry?.title ?? "");
-  const [username,     setUsername]      = useState(entry?.username ?? "");
-  const [password,     setPassword]      = useState(entry?.password ?? "");
-  const [url,          setUrl]          = useState(entry?.url ?? "");
-  const [notes,        setNotes]        = useState(entry?.notes ?? "");
-  const [category,     setCategory]     = useState(entry?.category ?? "");
-  const [tags,         setTags]         = useState<string[]>(entry?.tags ?? []);
-  const [serviceType,  setServiceType]  = useState<ServiceType>(entry?.serviceType ?? "free");
-  const [iconTab,      setIconTab]      = useState<IconTab>(
-    (entry?.icon?.type === "url" || entry?.icon?.type === "iconify" || entry?.icon?.type === "letter")
-      ? entry.icon.type
-      : "letter"
+function IconPicker({
+  label,
+  value,
+  onChange,
+  title = "",
+  activeProject,
+}: {
+  label: string;
+  value: IconSource | undefined;
+  onChange: (icon: IconSource | undefined) => void;
+  title?: string;
+  activeProject: string;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [tab,        setTab]        = useState<IconTab>(
+    value?.type === "iconify" ? "iconify"
+    : value?.type === "url"   ? "url"
+    : "letter"
   );
-  const [iconValue,    setIconValue]    = useState(entry?.icon?.value ?? "");
-  const [uploadedIcon, setUploadedIcon] = useState<string | null>(
-    entry?.icon?.type === "url" && entry.icon.value.startsWith("/api/v1/icons/") ? entry.icon.value : null
+  const [iconValue,  setIconValue]  = useState(
+    (value?.type === "iconify" || value?.type === "url") ? value.value : ""
   );
-  const [uploadName,   setUploadName]   = useState("");
-  const [uploading,    setUploading]    = useState(false);
-  const [newTag,       setNewTag]       = useState("");
-  const [pwVisible,    setPwVisible]    = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(
+    value?.type === "url" && value.value.startsWith("/api") ? value.value : null
+  );
+  const [uploadName, setUploadName] = useState("");
+  const [uploading,  setUploading]  = useState(false);
 
-  // Derive the current IconSource from form state
-  const icon: IconSource = (() => {
-    if (iconTab === "upload" && uploadedIcon) return { type: "url", value: uploadedIcon };
-    if (iconTab === "iconify") return { type: "iconify", value: iconValue };
-    if (iconTab === "url")     return { type: "url",     value: iconValue };
-    return { type: "letter", value: iconValue || title.charAt(0).toUpperCase() };
-  })();
+  const previewIcon: IconSource =
+    tab === "upload" && uploadedUrl ? { type: "url",     value: uploadedUrl }
+    : tab === "iconify"             ? { type: "iconify", value: iconValue }
+    : tab === "url"                 ? { type: "url",     value: iconValue }
+    : { type: "letter", value: iconValue || title.charAt(0).toUpperCase() };
 
-  const addTag = (tag: string) => {
-    const t = tag.trim();
-    if (t && !tags.includes(t)) setTags([...tags, t]);
-    setNewTag("");
+  const emit = (t: IconTab, v: string, up: string | null) => {
+    if (t === "upload" && up)   onChange({ type: "url",     value: up });
+    else if (t === "iconify")   onChange({ type: "iconify", value: v });
+    else if (t === "url")       onChange({ type: "url",     value: v });
+    else                        onChange(v ? { type: "letter", value: v } : undefined);
   };
-  const removeTag = (tag: string) => setTags(tags.filter((t) => t !== tag));
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadName(file.name);
-
-    // In mock mode, create a local object URL so the preview works without a backend
-    const objectUrl = URL.createObjectURL(file);
-
+    const objUrl = URL.createObjectURL(file);
     setUploading(true);
     try {
       const form = new FormData();
       form.append("file", file);
-      const q = activeProject !== "mock"
-        ? `?project=${encodeURIComponent(activeProject)}`
-        : "";
+      const q = activeProject !== "mock" ? `?project=${encodeURIComponent(activeProject)}` : "";
       const res = await fetch(`/api/v1/icons${q}`, { method: "POST", body: form });
-      if (res.ok) {
-        const data = await res.json();
-        setUploadedIcon(data.url);           // /api/v1/icons/abc.png?project=ya
-      } else {
-        setUploadedIcon(objectUrl);          // mock mode fallback
-      }
+      const url = res.ok ? (await res.json()).url : objUrl;
+      setUploadedUrl(url);
+      emit("upload", "", url);
     } catch {
-      setUploadedIcon(objectUrl);            // server not running / mock mode
-    } finally {
-      setUploading(false);
+      setUploadedUrl(objUrl);
+      emit("upload", "", objUrl);
+    } finally { setUploading(false); }
+  };
+
+  return (
+    <Field label={label}>
+      <div className="flex items-center gap-3 mb-2">
+        <EntryIcon icon={previewIcon} title={title || "?"} size={28} />
+        <div className="flex gap-1">
+          {ICON_TABS.map((t) => (
+            <button key={t} type="button"
+              onClick={() => { setTab(t); emit(t, iconValue, uploadedUrl); }}
+              className={`font-mono text-xs px-2.5 py-0.5 border rounded-sm transition-colors ${
+                tab === t
+                  ? "border-blue-700 text-blue-400 bg-blue-700/10"
+                  : "border-white/15 text-white/40 hover:border-white/30"
+              }`}>
+              {t === "upload" ? "↑ upload" : t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {(tab === "letter" || tab === "iconify" || tab === "url") && (
+        <input className={inp} value={iconValue}
+          onChange={(e) => { setIconValue(e.target.value); emit(tab, e.target.value, uploadedUrl); }}
+          placeholder={
+            tab === "iconify" ? "logos:github-icon"
+            : tab === "url"   ? "https://example.com/logo.svg"
+            : "Leave blank for first letter"
+          }
+          autoComplete="off" data-lpignore="true" />
+      )}
+
+      {tab === "upload" && (
+        <>
+          <div onClick={() => fileRef.current?.click()}
+            className="flex flex-col items-center justify-center gap-2 border border-dashed border-white/20 rounded-sm py-3 cursor-pointer hover:border-blue-700 hover:bg-blue-700/5 transition-colors">
+            {uploadedUrl
+              ? <img src={uploadedUrl} alt="preview" className="h-8 w-8 object-contain" />
+              : <Icon icon="mdi:cloud-upload-outline" className="text-xl text-white/30" />}
+            <span className="font-mono text-xs text-white/40">
+              {uploading ? "Uploading…" : uploadName || "Click to upload PNG / SVG / WEBP"}
+            </span>
+          </div>
+          <input ref={fileRef} type="file" accept="image/png,image/svg+xml,image/webp,image/jpeg"
+            className="hidden" onChange={handleFile} />
+        </>
+      )}
+    </Field>
+  );
+}
+
+export default function AddEditModal({
+  entry, activeProject, companies = [], onSave, onClose,
+}: AddEditModalProps) {
+  const isEdit = !!entry;
+
+  // ── core fields ──────────────────────────────────────────────────────
+  const [title,       setTitle]       = useState(entry?.title ?? "");
+  const [username,    setUsername]    = useState(entry?.username ?? "");
+  const [email,       setEmail]       = useState(entry?.email ?? "");
+  const [password,    setPassword]    = useState(entry?.password ?? "");
+  const [url,         setUrl]         = useState(entry?.url ?? "");
+  const [notes,       setNotes]       = useState(entry?.notes ?? "");
+  const [category,    setCategory]    = useState(entry?.category ?? "");
+  const [tags,        setTags]        = useState<string[]>(entry?.tags ?? []);
+  const [serviceType, setServiceType] = useState<ServiceType>(entry?.serviceType ?? "free");
+  const [loginMethods, setLoginMethods] = useState<string[]>(entry?.loginMethods ?? []);
+  const [customMethod, setCustomMethod] = useState("");
+  const [userCreatedAt, setUserCreatedAt] = useState(entry?.userCreatedAt?.slice(0, 10) ?? "");
+  const [pwVisible,   setPwVisible]   = useState(false);
+  const [newTag,      setNewTag]      = useState("");
+
+  // ── icon ─────────────────────────────────────────────────────────────
+  const [entryIcon, setEntryIcon] = useState<IconSource | undefined>(entry?.icon);
+
+  // ── owner / company ───────────────────────────────────────────────────
+  const [showOwner,    setShowOwner]    = useState(!!(entry?.company || entry?.companyId));
+  const [companyId,    setCompanyId]    = useState<number | undefined>(entry?.companyId);
+  const [ownerName,    setOwnerName]    = useState(entry?.company?.name ?? "");
+  const [ownerIcon,    setOwnerIcon]    = useState<IconSource | undefined>(entry?.company?.icon);
+  const [ownerStreet,  setOwnerStreet]  = useState(entry?.company?.address?.street ?? "");
+  const [ownerCity,    setOwnerCity]    = useState(entry?.company?.address?.city ?? "");
+  const [ownerState,   setOwnerState]   = useState(entry?.company?.address?.state ?? "");
+  const [ownerPost,    setOwnerPost]    = useState(entry?.company?.address?.postcode ?? "");
+  const [ownerCountry, setOwnerCountry] = useState(entry?.company?.address?.country ?? "");
+  const [ownerCode,    setOwnerCode]    = useState(entry?.company?.address?.countryCode ?? "");
+  const [ownerRevenue, setOwnerRevenue] = useState(
+    entry?.company?.revenue != null ? String(entry.company.revenue) : ""
+  );
+
+  const toggleLoginMethod = (m: string) =>
+    setLoginMethods((prev) => prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]);
+  const addTag = (t: string) => { const v = t.trim(); if (v && !tags.includes(v)) setTags([...tags, v]); setNewTag(""); };
+
+  const fillCompanyFromExisting = (name: string) => {
+    const match = companies.find((c) => c.name.toLowerCase() === name.toLowerCase());
+    if (match) {
+      setCompanyId(match.id);
+      setOwnerIcon(match.icon);
+      setOwnerStreet(match.address?.street ?? "");
+      setOwnerCity(match.address?.city ?? "");
+      setOwnerState(match.address?.state ?? "");
+      setOwnerPost(match.address?.postcode ?? "");
+      setOwnerCountry(match.address?.country ?? "");
+      setOwnerCode(match.address?.countryCode ?? "");
+      setOwnerRevenue(match.revenue != null ? String(match.revenue) : "");
+    } else {
+      setCompanyId(undefined);
     }
   };
 
   const handleSave = () => {
-    if (!title.trim() || !username.trim() || !password.trim() || !category.trim()) return;
+    if (!title.trim()) return;
+
+    let company: Company | undefined;
+    if (showOwner && ownerName.trim()) {
+      const addr: CompanyAddress | undefined = ownerCountry.trim() ? {
+        street: ownerStreet.trim() || undefined,
+        city: ownerCity.trim() || undefined,
+        state: ownerState.trim() || undefined,
+        postcode: ownerPost.trim() || undefined,
+        country: ownerCountry.trim(),
+        countryCode: ownerCode.trim().toLowerCase() || ownerCountry.slice(0, 2).toLowerCase(),
+      } : undefined;
+      company = {
+        id: companyId ?? 0,
+        name: ownerName.trim(),
+        icon: ownerIcon,
+        address: addr,
+        revenue: ownerRevenue ? Number(ownerRevenue.replace(/[^0-9.]/g, "")) : undefined,
+      };
+    }
+
     onSave({
       title: title.trim(),
-      username: username.trim(),
-      password,
+      username: username.trim() || undefined,
+      email: email.trim() || undefined,
+      password: password || undefined,
       url: url.trim() || undefined,
       notes: notes.trim() || undefined,
-      icon: (iconTab === "letter" && !iconValue) ? undefined : icon,
-      category: category.trim(),
+      icon: entryIcon,
+      category: category.trim() || "Other",
       tags,
       serviceType,
+      loginMethods,
+      company,
+      companyId,
+      userCreatedAt: userCreatedAt ? new Date(userCreatedAt).toISOString() : undefined,
     });
     onClose();
   };
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
   }, [onClose]);
-
-  const isValid = title.trim() && username.trim() && password.trim() && category.trim();
 
   return (
     <div
@@ -129,12 +253,10 @@ export default function AddEditModal({ entry, activeProject, onSave, onClose }: 
       <div className="w-full max-w-lg bg-neutral-950 border border-white/15 rounded-sm shadow-2xl flex flex-col max-h-[92vh]">
 
         {/* Header */}
-        <div
-          className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0"
-          style={{ background: "linear-gradient(to right, #1d4ed822, #b91c1c22)" }}
-        >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0"
+          style={{ background: "linear-gradient(to right, #1d4ed822, #b91c1c22)" }}>
           <div className="flex items-center gap-3">
-            <EntryIcon icon={icon} title={title || "?"} size={32} />
+            <EntryIcon icon={entryIcon} title={title || "?"} size={32} />
             <h2 className="font-mono font-bold text-white text-sm">
               {isEdit ? `Edit — ${entry.title}` : "New entry"}
             </h2>
@@ -147,73 +269,50 @@ export default function AddEditModal({ entry, activeProject, onSave, onClose }: 
         {/* Form body */}
         <div className="flex flex-col gap-4 px-5 py-5 overflow-y-auto">
 
-          {/* Title + Category — both required, side by side */}
+          {/* Title + Category */}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Title *">
-              <input
-                className={input}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. GitHub"
-                autoComplete="off"
-                data-lpignore="true"
-              />
+              <input className={inp} value={title} onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. GitHub" autoComplete="off" data-lpignore="true" />
             </Field>
-            <Field label="Category *">
-              <input
-                className={input}
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Software"
-                list="modal-category-list"
-                autoComplete="off"
-                data-lpignore="true"
-              />
+            <Field label="Category">
+              <input className={inp} value={category} onChange={(e) => setCategory(e.target.value)}
+                placeholder="e.g. Software" list="modal-category-list"
+                autoComplete="off" data-lpignore="true" />
               <datalist id="modal-category-list">
                 {ALL_CATEGORIES.map((c) => <option key={c} value={c} />)}
               </datalist>
             </Field>
           </div>
 
-          {/* Username */}
-          <Field label="Username / Email *">
-            <input
-              className={input}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="me@example.com"
-              autoComplete="off"
-              data-lpignore="true"
-              data-form-type="other"
-            />
-          </Field>
+          {/* Username + Email */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Username">
+              <input className={inp} value={username} onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g. me-dev" autoComplete="off" data-lpignore="true" data-form-type="other" />
+            </Field>
+            <Field label="Email">
+              <input className={inp} value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="me@example.com" autoComplete="off" data-lpignore="true" data-form-type="other" />
+            </Field>
+          </div>
 
           {/* Password */}
-          <Field label="Password *">
+          <Field label="Password">
             <div className="flex gap-1">
               <div className="relative flex-1">
-                <input
-                  className={`${input} pr-8`}
-                  type={pwVisible ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter or generate password"
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setPwVisible((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"
-                >
+                <input className={`${inp} pr-8`} type={pwVisible ? "text" : "password"}
+                  value={password} onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter or generate" autoComplete="new-password" />
+                <button type="button" onClick={() => setPwVisible((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">
                   <Icon icon={pwVisible ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="text-sm" />
                 </button>
               </div>
-              <button
-                type="button"
+              <button type="button"
                 onClick={() => { setPassword(generatePassword()); setPwVisible(true); }}
                 className="border border-white/15 px-2 rounded-sm text-white/40 hover:text-white hover:border-blue-700 transition-colors"
-                title="Generate strong password"
-              >
+                title="Generate">
                 <Icon icon="mdi:dice-6-outline" className="text-base" />
               </button>
             </div>
@@ -221,152 +320,147 @@ export default function AddEditModal({ entry, activeProject, onSave, onClose }: 
 
           {/* URL */}
           <Field label="URL">
-            <input
-              className={input}
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://example.com"
-              autoComplete="off"
-              data-lpignore="true"
-            />
+            <input className={inp} value={url} onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://example.com" autoComplete="off" data-lpignore="true" />
           </Field>
 
-          {/* Icon picker */}
-          <Field label="Icon">
-            {/* Tab strip */}
-            <div className="flex gap-1 mb-2">
-              {ICON_TABS.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setIconTab(t)}
-                  className={`font-mono text-xs px-2.5 py-0.5 border rounded-sm transition-colors ${
-                    iconTab === t
-                      ? "border-blue-700 text-blue-400 bg-blue-700/10"
-                      : "border-white/15 text-white/40 hover:border-white/30"
-                  }`}
-                >
-                  {t === "upload" ? "↑ upload" : t}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab content */}
-            {(iconTab === "letter" || iconTab === "iconify" || iconTab === "url") && (
-              <input
-                className={input}
-                value={iconValue}
-                onChange={(e) => setIconValue(e.target.value)}
-                placeholder={
-                  iconTab === "iconify" ? "logos:github-icon"
-                  : iconTab === "url"   ? "https://companieslogo.com/img/orig/…"
-                  : "Leave blank to use first letter"
-                }
-                autoComplete="off"
-                data-lpignore="true"
-              />
-            )}
-
-            {iconTab === "upload" && (
-              <div className="flex flex-col gap-2">
-                {/* Drop zone */}
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center gap-2 border border-dashed border-white/20 rounded-sm py-5 cursor-pointer hover:border-blue-700 hover:bg-blue-700/5 transition-colors"
-                >
-                  {uploadedIcon ? (
-                    <img src={uploadedIcon} alt="preview" className="h-10 w-10 object-contain" />
-                  ) : (
-                    <Icon icon="mdi:cloud-upload-outline" className="text-2xl text-white/30" />
-                  )}
-                  <span className="font-mono text-xs text-white/40">
-                    {uploading ? "Uploading…" : uploadName || "Click to upload PNG / SVG / WEBP"}
-                  </span>
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/svg+xml,image/webp,image/jpeg"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                {/* Note about storage */}
-                <p className="font-mono text-xs text-white/25">
-                  Stored in <code className="text-white/40">.sspwd/&#123;project&#125;/icons/</code>
-                </p>
-              </div>
-            )}
-          </Field>
-
-          {/* Service type — free / paid toggle */}
-          <Field label="Service type">
-            <div className="flex gap-1.5">
-              {SERVICE_TYPES.map(({ value, label }) => (
-                <TagBadge
-                  key={value}
-                  label={label}
-                  active={serviceType === value}
-                  onClick={() => setServiceType(value)}
-                />
-              ))}
-            </div>
-          </Field>
-
-          {/* Tags */}
-          <Field label="Tags">
+          {/* Login methods */}
+          <Field label="Login methods">
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {tags.map((tag) => (
-                <TagBadge key={tag} label={tag} active removable onRemove={() => removeTag(tag)} size="sm" />
+              {COMMON_LOGIN_METHODS.map((m) => (
+                <TagBadge key={m} label={m} size="sm"
+                  active={loginMethods.includes(m)}
+                  onClick={() => toggleLoginMethod(m)} />
               ))}
             </div>
             <div className="flex gap-1">
-              <input
-                className={`${input} flex-1`}
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(newTag); } }}
-                placeholder="Type tag + Enter"
-                list="modal-tag-list"
-                autoComplete="off"
-                data-lpignore="true"
-              />
-              <datalist id="modal-tag-list">
-                {ALL_TAGS.map((t) => <option key={t} value={t} />)}
-              </datalist>
-              <button
-                type="button"
-                onClick={() => addTag(newTag)}
-                className="border border-white/15 px-2 rounded-sm text-white/40 hover:text-white hover:border-blue-700 transition-colors"
-              >
-                <Icon icon="mdi:plus" className="text-base" />
-              </button>
+              <input className={`${inp} flex-1`} value={customMethod}
+                onChange={(e) => setCustomMethod(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const v = customMethod.trim(); if (v && !loginMethods.includes(v)) setLoginMethods((p) => [...p, v]); setCustomMethod(""); } }}
+                placeholder="Custom + Enter" autoComplete="off" data-lpignore="true" />
             </div>
           </Field>
 
+          {/* Entry Icon */}
+          <IconPicker label="Icon" value={entryIcon} onChange={setEntryIcon}
+            title={title} activeProject={activeProject} />
+
+          {/* Service type + Tags */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Service type">
+              <div className="flex gap-1.5">
+                {SERVICE_TYPES.map(({ value, label }) => (
+                  <TagBadge key={value} label={label}
+                    active={serviceType === value} onClick={() => setServiceType(value)} />
+                ))}
+              </div>
+            </Field>
+            <Field label="Tags">
+              <div className="flex flex-wrap gap-1.5 mb-1">
+                {tags.map((t) => (
+                  <TagBadge key={t} label={t} active removable size="sm" onRemove={() => setTags(tags.filter((x) => x !== t))} />
+                ))}
+              </div>
+              <div className="flex gap-1">
+                <input className={`${inp} flex-1`} value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(newTag); } }}
+                  placeholder="Tag + Enter" list="modal-tag-list" autoComplete="off" data-lpignore="true" />
+                <datalist id="modal-tag-list">
+                  {ALL_TAGS.map((t) => <option key={t} value={t} />)}
+                </datalist>
+              </div>
+            </Field>
+          </div>
+
+          {/* Used since */}
+          <Field label="Used since">
+            <input className={inp} type="date" value={userCreatedAt}
+              onChange={(e) => setUserCreatedAt(e.target.value)} style={{ colorScheme: "dark" }} />
+            <p className="font-mono text-xs text-white/25 mt-1">When you started using this service.</p>
+          </Field>
+
+          {/* Owner / Company */}
+          <div className="flex flex-col gap-2">
+            <button type="button" onClick={() => setShowOwner((v) => !v)}
+              className="flex items-center gap-2 font-mono text-xs text-white/40 hover:text-white transition-colors w-fit">
+              <Icon icon={showOwner ? "mdi:chevron-down" : "mdi:chevron-right"} className="text-sm" />
+              <span className="uppercase tracking-widest">Owner / Company</span>
+              {ownerName && <span className="text-white/60 normal-case tracking-normal">— {ownerName}</span>}
+            </button>
+
+            {showOwner && (
+              <div className="flex flex-col gap-3 pl-3 border-l border-white/10">
+                <Field label="Company name">
+                  <input className={inp} value={ownerName}
+                    onChange={(e) => { setOwnerName(e.target.value); fillCompanyFromExisting(e.target.value); }}
+                    placeholder="e.g. Alphabet Inc." list="company-list"
+                    autoComplete="off" data-lpignore="true" />
+                  <datalist id="company-list">
+                    {companies.map((c) => <option key={c.id} value={c.name} />)}
+                  </datalist>
+                </Field>
+
+                {/* Owner Icon — same 4 tabs */}
+                <IconPicker label="Owner icon" value={ownerIcon} onChange={setOwnerIcon}
+                  title={ownerName} activeProject={activeProject} />
+
+                {/* Address — split fields */}
+                <Field label="Street & number">
+                  <input className={inp} value={ownerStreet} onChange={(e) => setOwnerStreet(e.target.value)}
+                    placeholder="345 Park Ave" autoComplete="off" data-lpignore="true" />
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="City">
+                    <input className={inp} value={ownerCity} onChange={(e) => setOwnerCity(e.target.value)}
+                      placeholder="San Jose" autoComplete="off" data-lpignore="true" />
+                  </Field>
+                  <Field label="State">
+                    <input className={inp} value={ownerState} onChange={(e) => setOwnerState(e.target.value)}
+                      placeholder="CA" autoComplete="off" data-lpignore="true" />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Postcode">
+                    <input className={inp} value={ownerPost} onChange={(e) => setOwnerPost(e.target.value)}
+                      placeholder="95110" autoComplete="off" data-lpignore="true" />
+                  </Field>
+                  <Field label="Country">
+                    <input className={inp} value={ownerCountry} onChange={(e) => setOwnerCountry(e.target.value)}
+                      placeholder="United States" autoComplete="off" data-lpignore="true" />
+                  </Field>
+                </div>
+                <Field label="Country code (ISO 2-letter)">
+                  <input className={inp} value={ownerCode} onChange={(e) => setOwnerCode(e.target.value.toLowerCase())}
+                    placeholder="us" maxLength={2} autoComplete="off" data-lpignore="true" />
+                  <p className="font-mono text-xs text-white/25 mt-1">Used for flag icon, e.g. "us", "de", "gb".</p>
+                </Field>
+
+                <Field label="Annual revenue (USD)">
+                  <input className={inp} value={ownerRevenue} onChange={(e) => setOwnerRevenue(e.target.value)}
+                    placeholder="e.g. 307400000000" autoComplete="off" data-lpignore="true" />
+                  <p className="font-mono text-xs text-white/25 mt-1">Raw number in USD. Displayed as $307.4B in UI.</p>
+                </Field>
+              </div>
+            )}
+          </div>
+
           {/* Notes */}
           <Field label="Notes">
-            <textarea
-              className={`${input} resize-none h-20`}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional notes…"
-            />
+            <textarea className={`${inp} resize-none h-20`}
+              value={notes} onChange={(e) => setNotes(e.target.value)}
+              placeholder="Optional notes…" />
           </Field>
         </div>
 
         {/* Footer */}
         <div className="flex gap-2 px-5 py-4 border-t border-white/10 shrink-0">
-          <button
-            onClick={onClose}
-            className="flex-1 font-mono text-xs border border-white/15 text-white/50 hover:text-white hover:border-white/30 rounded-sm py-2 transition-colors"
-          >
+          <button onClick={onClose}
+            className="flex-1 font-mono text-xs border border-white/15 text-white/50 hover:text-white hover:border-white/30 rounded-sm py-2 transition-colors">
             Cancel
           </button>
-          <button
-            onClick={handleSave}
-            disabled={!isValid}
-            className="flex-1 font-mono text-xs font-semibold bg-red-700 hover:bg-red-600 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-sm py-2 transition-colors"
-          >
+          <button onClick={handleSave} disabled={!title.trim()}
+            className="flex-1 font-mono text-xs font-semibold bg-red-700 hover:bg-red-600 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-sm py-2 transition-colors">
             {isEdit ? "Save changes" : "Add entry"}
           </button>
         </div>
@@ -375,8 +469,7 @@ export default function AddEditModal({ entry, activeProject, onSave, onClose }: 
   );
 }
 
-const input =
-  "w-full font-mono text-xs bg-black border border-white/15 text-white placeholder-white/25 px-3 py-2 rounded-sm focus:outline-none focus:border-blue-700 transition-colors";
+const inp = "w-full font-mono text-xs bg-black border border-white/15 text-white placeholder-white/25 px-3 py-2 rounded-sm focus:outline-none focus:border-blue-700 transition-colors";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

@@ -99,11 +99,10 @@ export default function Header({
       icon:      unlockedProjects.includes(p) ? "si:unlock-fill"        : "si:lock-muted-fill",
       iconClass: unlockedProjects.includes(p) ? "text-green-400"        : "text-white/40",
     })),
-    { value: "__create__", label: "+ new",     icon: "mdi:folder-plus-outline",  iconClass: "text-white/40" },
+    { value: "__create__", label: "+ new",     icon: "",                         iconClass: "" },
   ];
 
   const activeOption = options.find((o) => o.value === activeProject) ?? options[0];
-  const isLive = activeProject !== "mock";
   const [dropOpen, setDropOpen] = useState(false);
 
   return (
@@ -137,7 +136,7 @@ export default function Header({
               onClick={() => setDropOpen((v) => !v)}
               className="flex items-center gap-2 font-mono text-xs text-white bg-black/60 border border-white/30 pl-3 pr-8 py-1.5 rounded-sm hover:bg-black/80 focus:outline-none focus:border-white/60 transition-colors min-w-36"
             >
-              <Icon icon={activeOption.icon} className={`text-sm shrink-0 ${activeOption.iconClass}`} />
+              {activeOption.icon && <Icon icon={activeOption.icon} className={`text-sm shrink-0 ${activeOption.iconClass}`} />}
               <span>{activeOption.label}</span>
             </button>
             <Icon icon="mdi:chevron-down"
@@ -155,7 +154,7 @@ export default function Header({
                       o.value === activeProject ? "text-white bg-white/5" : "text-white/70"
                     }`}
                   >
-                    <Icon icon={o.icon} className={`text-sm shrink-0 ${o.iconClass}`} />
+                    {o.icon && <Icon icon={o.icon} className={`text-sm shrink-0 ${o.iconClass}`} />}
                     {o.label}
                   </button>
                 ))}
@@ -163,15 +162,6 @@ export default function Header({
             )}
           </div>
 
-          {/* Show unlock icon + "live" badge next to the active unlocked project */}
-          {isLive && (
-            <div className="flex items-center gap-1">
-              <Icon icon="si:unlock-fill" className="text-green-400 text-sm" />
-              <span className="font-mono text-xs text-green-400 border border-green-800 px-2 py-0.5 rounded-sm">
-                live
-              </span>
-            </div>
-          )}
         </div>
       </header>
 

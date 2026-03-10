@@ -6,7 +6,8 @@ import MainContent from "./components/MainContent";
 import DetailPanel from "./components/DetailPanel";
 import AddEditModal from "./components/AddEditModal";
 import type { FilterState, PasswordEntry } from "./types";
-import { MOCK_ENTRIES } from "./data/mockData";
+import { MOCK_COMPANIES, MOCK_ENTRIES } from "./data/mockData";
+import type { Company } from "./types";
 
 const DEFAULT_FILTER: FilterState = {
   search: "", tags: [], categories: [], serviceTypes: [],
@@ -17,6 +18,7 @@ export default function App() {
   const [activeProject,    setActiveProject]    = useState("mock");
   const [unlockedProjects, setUnlockedProjects] = useState<string[]>([]);
   const [entries,          setEntries]          = useState<PasswordEntry[]>(MOCK_ENTRIES);
+  const [companies,        setCompanies]        = useState<Company[]>(MOCK_COMPANIES);
   const [loading,          setLoading]          = useState(false);
   const [vaultError,       setVaultError]       = useState<string | null>(null);
   const [filter,           setFilter]           = useState<FilterState>(DEFAULT_FILTER);
@@ -32,11 +34,22 @@ export default function App() {
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const data = await res.json();
       setEntries(data.map((e: any) => ({
-        id: e.id, title: e.title, username: e.username, password: e.password,
-        url: e.url ?? undefined, notes: e.notes ?? undefined,
-        icon: e.icon ?? undefined, category: e.category ?? "Other",
-        tags: e.tags ?? [], serviceType: e.service_type ?? "free",
-        createdAt: e.created_at, updatedAt: e.updated_at,
+        id:             e.id,
+        title:          e.title,
+        username:       e.username   ?? undefined,
+        email:          e.email      ?? undefined,
+        password:       e.password   ?? undefined,
+        url:            e.url        ?? undefined,
+        notes:          e.notes      ?? undefined,
+        icon:           e.icon       ?? undefined,
+        category:       e.category   ?? "Other",
+        tags:           e.tags       ?? [],
+        serviceType:    e.service_type ?? "free",
+        loginMethods:   e.login_methods ?? [],
+        companyId:      e.company_id ?? undefined,
+        userCreatedAt:  e.user_created_at ?? undefined,
+        createdAt:      e.created_at,
+        updatedAt:      e.updated_at,
       })));
     } catch {
       setVaultError("Could not load entries. Is `sspwd serve` running on :7523?");
@@ -115,8 +128,17 @@ export default function App() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            title: data.title, username: data.username, password: data.password,
-            url: data.url ?? null, notes: data.notes ?? null,
+            title:           data.title,
+            username:        data.username        ?? null,
+            email:           data.email           ?? null,
+            password:        data.password        ?? null,
+            url:             data.url             ?? null,
+            notes:           data.notes           ?? null,
+            category:        data.category        ?? "Other",
+            tags:            data.tags            ?? [],
+            login_methods:   data.loginMethods    ?? [],
+            company_id:      data.companyId       ?? null,
+            user_created_at: data.userCreatedAt   ?? null,
           }),
         });
         if (!res.ok) throw new Error("Failed to update entry.");
@@ -132,8 +154,17 @@ export default function App() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            title: data.title, username: data.username, password: data.password,
-            url: data.url ?? null, notes: data.notes ?? null,
+            title:           data.title,
+            username:        data.username        ?? null,
+            email:           data.email           ?? null,
+            password:        data.password        ?? null,
+            url:             data.url             ?? null,
+            notes:           data.notes           ?? null,
+            category:        data.category        ?? "Other",
+            tags:            data.tags            ?? [],
+            login_methods:   data.loginMethods    ?? [],
+            company_id:      data.companyId       ?? null,
+            user_created_at: data.userCreatedAt   ?? null,
           }),
         });
         if (!res.ok) throw new Error("Failed to create entry.");
@@ -223,6 +254,7 @@ export default function App() {
         <AddEditModal
           entry={modalEntry}
           activeProject={activeProject}
+          companies={companies}
           onSave={handleSave}
           onClose={() => setModalEntry(undefined)}
         />
