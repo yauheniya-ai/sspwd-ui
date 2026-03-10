@@ -36,7 +36,7 @@ export default function Footer() {
       </nav>
 
       {/* Version */}
-      <span className="font-mono text-xs text-white/30">v0.1.0</span>
+      <span className="font-mono text-xs text-white/30">v0.2.1</span>
     </footer>
   );
 }
