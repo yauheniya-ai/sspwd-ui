@@ -11,10 +11,10 @@ interface SidebarProps {
 }
 
 const SORT_OPTIONS: Array<{ value: SortField; label: string }> = [
-  { value: "title",     label: "Title A→Z" },
-  { value: "createdAt", label: "Date added" },
-  { value: "updatedAt", label: "Last updated" },
-  { value: "category",  label: "Category" },
+  { value: "title",       label: "Title A→Z" },
+  { value: "createdAt",   label: "Date added" },
+  { value: "updatedAt",   label: "Last updated" },
+  { value: "userCreatedAt", label: "Using since" },
 ];
 
 // Solid/filled iconify icons per category. Add new ones here as categories grow.

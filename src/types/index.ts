@@ -57,7 +57,7 @@ export interface PasswordEntry {
   updatedAt: string;
 }
 
-export type SortField = "title" | "createdAt" | "updatedAt" | "category";
+export type SortField = "title" | "createdAt" | "updatedAt" | "category" | "userCreatedAt";
 export type SortDir   = "asc" | "desc";
 
 export interface FilterState {

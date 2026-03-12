@@ -47,9 +47,10 @@ function applyFilter(entries: PasswordEntry[], filter: FilterState): PasswordEnt
   result.sort((a, b) => {
     let va: string;
     let vb: string;
-    if (filter.sortField === "title")     { va = a.title;     vb = b.title; }
-    else if (filter.sortField === "category") { va = a.category; vb = b.category; }
-    else if (filter.sortField === "createdAt") { va = a.createdAt; vb = b.createdAt; }
+    if (filter.sortField === "title")           { va = a.title;              vb = b.title; }
+    else if (filter.sortField === "category")    { va = a.category;           vb = b.category; }
+    else if (filter.sortField === "createdAt")   { va = a.createdAt;          vb = b.createdAt; }
+    else if (filter.sortField === "userCreatedAt") { va = a.userCreatedAt ?? ""; vb = b.userCreatedAt ?? ""; }
     else { va = a.updatedAt; vb = b.updatedAt; }
 
     const cmp = va.localeCompare(vb);
