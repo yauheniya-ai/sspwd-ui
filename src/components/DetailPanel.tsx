@@ -109,7 +109,7 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
         <StaticField label="Login methods" empty={!entry.loginMethods?.length}>
           <div className="flex flex-wrap gap-1.5 mt-0.5">
             {entry.loginMethods?.map((m) => (
-              <span key={m} className="font-mono text-xs border border-white/15 text-white/50 px-2 py-0.5 rounded-sm">{m}</span>
+              <span key={m} className="bg-blue-700 text-white border-blue-600 hover:bg-blue-600 px-2 py-0.5 rounded-sm">{m}</span>
             ))}
           </div>
         </StaticField>
