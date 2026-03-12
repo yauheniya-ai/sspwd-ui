@@ -66,6 +66,7 @@ export interface FilterState {
   categories:    string[];
   serviceTypes:  ServiceType[];
   loginMethods:  string[];
+  countries:     string[];
   sortField:     SortField;
   sortDir:       SortDir;
 }

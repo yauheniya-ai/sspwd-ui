@@ -1,7 +1,7 @@
 import { Icon } from "@iconify/react";
 import TagBadge from "./TagBadge";
 import type { FilterState, SortField } from "../types";
-import { ALL_TAGS, ALL_CATEGORIES, ALL_LOGIN_METHODS, SERVICE_TYPES } from "../data/mockData";
+import { ALL_TAGS, ALL_CATEGORIES, ALL_LOGIN_METHODS, ALL_COUNTRIES, SERVICE_TYPES } from "../data/mockData";
 
 interface SidebarProps {
   filter: FilterState;
@@ -64,6 +64,14 @@ export default function Sidebar({
         : [...f.loginMethods, m],
     }));
 
+  const toggleCountry = (c: string) =>
+    setFilter((f) => ({
+      ...f,
+      countries: f.countries.includes(c)
+        ? f.countries.filter((x) => x !== c)
+        : [...f.countries, c],
+    }));
+
   const isActiveCategory = (cat: string) => filter.categories.includes(cat);
 
   const toggleCategory = (cat: string) => {
@@ -77,13 +85,14 @@ export default function Sidebar({
   };
 
   const clearAll = () =>
-    setFilter((f) => ({ ...f, tags: [], categories: [], serviceTypes: [], loginMethods: [], search: "" }));
+    setFilter((f) => ({ ...f, tags: [], categories: [], serviceTypes: [], loginMethods: [], countries: [], search: "" }));
 
   const hasFilters =
     filter.tags.length > 0 ||
     filter.categories.length > 0 ||
     filter.serviceTypes.length > 0 ||
     filter.loginMethods.length > 0 ||
+    filter.countries.length > 0 ||
     filter.search !== "";
 
   return (
@@ -127,92 +136,6 @@ export default function Sidebar({
         </button>
       )}
 
-      {/* Filter by tags */}
-      <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
-          Filter by tags
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {ALL_TAGS.map((tag) => (
-            <TagBadge
-              key={tag}
-              label={tag}
-              active={filter.tags.includes(tag)}
-              onClick={() => toggleTag(tag)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Service type */}
-      <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
-          Service type
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {SERVICE_TYPES.map(({ value, label }) => (
-            <TagBadge
-              key={value}
-              label={label}
-              active={filter.serviceTypes.includes(value as any)}
-              onClick={() => toggleServiceType(value)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Sort */}
-      <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
-          Sort by
-        </label>
-        <div className="flex gap-1">
-          <select
-            value={filter.sortField}
-            onChange={(e) =>
-              setFilter((f) => ({ ...f, sortField: e.target.value as SortField }))
-            }
-            className="flex-1 font-mono text-xs bg-black border border-white/20 text-white px-2 py-1.5 rounded-sm focus:outline-none focus:border-blue-700 appearance-none"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => setFilter((f) => ({ ...f, sortDir: f.sortDir === "asc" ? "desc" : "asc" }))}
-            title={filter.sortDir === "asc" ? "Ascending" : "Descending"}
-            className="border border-white/20 px-2 py-1.5 rounded-sm text-white/50 hover:text-white hover:border-blue-700 transition-colors"
-          >
-            <Icon
-              icon={filter.sortDir === "asc" ? "mdi:sort-ascending" : "mdi:sort-descending"}
-              className="text-base"
-            />
-          </button>
-        </div>
-      </section>
-
-      {/* Login methods */}
-      <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
-          Login method
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {ALL_LOGIN_METHODS.map((m) => (
-            <TagBadge
-              key={m}
-              label={m}
-              active={filter.loginMethods.includes(m)}
-              onClick={() => toggleLoginMethod(m)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="border-t border-white/10" />
-
       {/* Category tree */}
       <section>
         <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
@@ -247,6 +170,109 @@ export default function Sidebar({
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* Sort */}
+      <section>
+        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+          Sort by
+        </label>
+        <div className="flex gap-1">
+          <select
+            value={filter.sortField}
+            onChange={(e) =>
+              setFilter((f) => ({ ...f, sortField: e.target.value as SortField }))
+            }
+            className="flex-1 font-mono text-xs bg-black border border-white/20 text-white px-2 py-1.5 rounded-sm focus:outline-none focus:border-blue-700 appearance-none"
+          >
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => setFilter((f) => ({ ...f, sortDir: f.sortDir === "asc" ? "desc" : "asc" }))}
+            title={filter.sortDir === "asc" ? "Ascending" : "Descending"}
+            className="border border-white/20 px-2 py-1.5 rounded-sm text-white/50 hover:text-white hover:border-blue-700 transition-colors"
+          >
+            <Icon
+              icon={filter.sortDir === "asc" ? "mdi:sort-ascending" : "mdi:sort-descending"}
+              className="text-base"
+            />
+          </button>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-white/10" />
+
+      {/* Filter by tags */}
+      <section>
+        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+          Filter by tags
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_TAGS.map((tag) => (
+            <TagBadge
+              key={tag}
+              label={tag}
+              active={filter.tags.includes(tag)}
+              onClick={() => toggleTag(tag)}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Service type */}
+      <section>
+        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+          Service type
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {SERVICE_TYPES.map(({ value, label }) => (
+            <TagBadge
+              key={value}
+              label={label}
+              active={filter.serviceTypes.includes(value as any)}
+              onClick={() => toggleServiceType(value)}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Login methods */}
+      <section>
+        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+          Login method
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_LOGIN_METHODS.map((m) => (
+            <TagBadge
+              key={m}
+              label={m}
+              active={filter.loginMethods.includes(m)}
+              onClick={() => toggleLoginMethod(m)}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Headquarters country */}
+      <section>
+        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+          HQ country
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_COUNTRIES.map((c) => (
+            <TagBadge
+              key={c}
+              label={c}
+              active={filter.countries.includes(c)}
+              onClick={() => toggleCountry(c)}
+            />
+          ))}
+        </div>
       </section>
     </aside>
   );

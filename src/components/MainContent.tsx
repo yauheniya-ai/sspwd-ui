@@ -49,6 +49,13 @@ function applyFilter(entries: PasswordEntry[], filter: FilterState): PasswordEnt
     );
   }
 
+  if (filter.countries.length > 0) {
+    result = result.filter(
+      (e) => e.company?.address?.country != null &&
+             filter.countries.includes(e.company.address.country)
+    );
+  }
+
   // sort
   result.sort((a, b) => {
     let va: string;

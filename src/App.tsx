@@ -10,7 +10,7 @@ import { MOCK_COMPANIES, MOCK_ENTRIES } from "./data/mockData";
 import type { Company } from "./types";
 
 const DEFAULT_FILTER: FilterState = {
-  search: "", tags: [], categories: [], serviceTypes: [], loginMethods: [],
+  search: "", tags: [], categories: [], serviceTypes: [], loginMethods: [], countries: [],
   sortField: "title", sortDir: "asc",
 };
 
@@ -18,7 +18,7 @@ export default function App() {
   const [activeProject,    setActiveProject]    = useState("mock");
   const [unlockedProjects, setUnlockedProjects] = useState<string[]>([]);
   const [entries,          setEntries]          = useState<PasswordEntry[]>(MOCK_ENTRIES);
-  const [companies,        setCompanies]        = useState<Company[]>(MOCK_COMPANIES);
+  const [companies]                             = useState<Company[]>(MOCK_COMPANIES);
   const [loading,          setLoading]          = useState(false);
   const [vaultError,       setVaultError]       = useState<string | null>(null);
   const [filter,           setFilter]           = useState<FilterState>(DEFAULT_FILTER);
