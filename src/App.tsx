@@ -5,7 +5,8 @@ import Sidebar from "./components/Sidebar";
 import MainContent from "./components/MainContent";
 import DetailPanel from "./components/DetailPanel";
 import AddEditModal from "./components/AddEditModal";
-import type { FilterState, PasswordEntry } from "./types";
+import OwnersModal from "./components/OwnersModal";
+import type { FilterState, IconCatalogueEntry, PasswordEntry } from "./types";
 import { MOCK_COMPANIES, MOCK_ENTRIES } from "./data/mockData";
 import type { Company } from "./types";
 
@@ -19,26 +20,30 @@ export default function App() {
   const [unlockedProjects, setUnlockedProjects] = useState<string[]>([]);
   const [entries,          setEntries]          = useState<PasswordEntry[]>(MOCK_ENTRIES);
   const [companies,          setCompanies]       = useState<Company[]>(MOCK_COMPANIES);
+  const [iconCatalogue,    setIconCatalogue]    = useState<IconCatalogueEntry[]>([]);
   const [loading,          setLoading]          = useState(false);
   const [vaultError,       setVaultError]       = useState<string | null>(null);
   const [filter,           setFilter]           = useState<FilterState>(DEFAULT_FILTER);
   const [selectedId,       setSelectedId]       = useState<number | null>(null);
   const [modalEntry,       setModalEntry]       = useState<PasswordEntry | null | undefined>(undefined);
+  const [ownersModalOpen,  setOwnersModalOpen]  = useState(false);
 
   // ── load entries for a project that is already unlocked ──
   const loadProject = async (project: string) => {
-    if (project === "mock") { setEntries(MOCK_ENTRIES); setCompanies(MOCK_COMPANIES); return; }
+    if (project === "mock") { setEntries(MOCK_ENTRIES); setCompanies(MOCK_COMPANIES); setIconCatalogue([]); return; }
     setLoading(true); setVaultError(null); setSelectedId(null);
     try {
       const q = encodeURIComponent(project);
-      const [eRes, cRes] = await Promise.all([
+      const [eRes, cRes, icRes] = await Promise.all([
         fetch(`/api/v1/entries?project=${q}`),
         fetch(`/api/v1/companies?project=${q}`),
+        fetch(`/api/v1/icon-catalogue?project=${q}`),
       ]);
       if (!eRes.ok) throw new Error(`Server returned ${eRes.status}`);
-      const [entriesData, companiesData] = await Promise.all([
+      const [entriesData, companiesData, icData] = await Promise.all([
         eRes.json(),
         cRes.ok ? cRes.json() : [],
+        icRes.ok ? icRes.json() : [],
       ]);
       const companyMap = new Map<number, Company>(
         (companiesData as any[]).map((c: any) => [c.id, {
@@ -50,6 +55,15 @@ export default function App() {
         } as Company])
       );
       setCompanies([...companyMap.values()]);
+      setIconCatalogue(
+        (icData as any[]).map((e: any) => ({
+          id:        e.id,
+          type:      e.type,
+          value:     e.value,
+          label:     e.label ?? undefined,
+          createdAt: e.created_at ?? undefined,
+        } as IconCatalogueEntry))
+      );
       setEntries((entriesData as any[]).map((e: any) => ({
         id:             e.id,
         title:          e.title,
@@ -251,6 +265,85 @@ export default function App() {
     if (selectedId === id) setSelectedId(null);
   };
 
+  // ── company CRUD (used by OwnersModal) ──
+  const handleUpdateCompany = async (company: Company) => {
+    if (activeProject === "mock") {
+      setCompanies((prev) => prev.map((c) => c.id === company.id ? company : c));
+      return;
+    }
+    const q = `?project=${encodeURIComponent(activeProject)}`;
+    const res = await fetch(`/api/v1/companies/${company.id}${q}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name:    company.name,
+        icon:    company.icon    ?? null,
+        address: company.address ?? null,
+        revenue: company.revenue ?? null,
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to update owner.");
+    const saved = await res.json();
+    const updated: Company = { id: saved.id, name: saved.name, icon: saved.icon ?? undefined, address: saved.address ?? undefined, revenue: saved.revenue ?? undefined };
+    setCompanies((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+  };
+
+  const handleDeleteCompany = async (id: number) => {
+    if (activeProject !== "mock") {
+      const q = `?project=${encodeURIComponent(activeProject)}`;
+      const res = await fetch(`/api/v1/companies/${id}${q}`, { method: "DELETE" });
+      if (!res.ok && res.status !== 204) throw new Error("Failed to delete owner.");
+    }
+    setCompanies((prev) => prev.filter((c) => c.id !== id));
+    setEntries((prev) => prev.map((e) => e.companyId === id ? { ...e, companyId: undefined, company: undefined } : e));
+  };
+
+  const handleAddCompany = async (company: Omit<Company, "id">) => {
+    if (activeProject === "mock") {
+      const newC: Company = { ...company, id: Date.now() };
+      setCompanies((prev) => [...prev, newC]);
+      return;
+    }
+    const q = `?project=${encodeURIComponent(activeProject)}`;
+    const res = await fetch(`/api/v1/companies${q}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name:    company.name,
+        icon:    company.icon    ?? null,
+        address: company.address ?? null,
+        revenue: company.revenue ?? null,
+      }),
+    });
+    if (!res.ok) throw new Error("Failed to create owner.");
+    const saved = await res.json();
+    const newC: Company = { id: saved.id, name: saved.name, icon: saved.icon ?? undefined, address: saved.address ?? undefined, revenue: saved.revenue ?? undefined };
+    setCompanies((prev) => [...prev, newC]);
+  };
+
+  // ── icon catalogue ──
+  const handleDeleteFromCatalogue = async (id: number) => {
+    if (activeProject === "mock") return;
+    const q = `?project=${encodeURIComponent(activeProject)}`;
+    await fetch(`/api/v1/icon-catalogue/${id}${q}`, { method: "DELETE" });
+    setIconCatalogue((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const handleUpdateCatalogueLabel = async (id: number, label: string) => {
+    if (activeProject === "mock") return;
+    const q = `?project=${encodeURIComponent(activeProject)}`;
+    const res = await fetch(`/api/v1/icon-catalogue/${id}${q}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label }),
+    });
+    if (!res.ok) return;
+    const saved = await res.json();
+    setIconCatalogue((prev) =>
+      prev.map((e) => e.id === id ? { ...e, label: saved.label ?? undefined } : e)
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen bg-neutral-950 text-white font-mono overflow-hidden">
       <Header
@@ -307,8 +400,24 @@ export default function App() {
           entry={modalEntry}
           activeProject={activeProject}
           companies={companies}
+          iconCatalogue={iconCatalogue}
           onSave={handleSave}
           onClose={() => setModalEntry(undefined)}
+          onOpenOwners={() => setOwnersModalOpen(true)}
+          onDeleteFromCatalogue={handleDeleteFromCatalogue}
+          onUpdateCatalogueLabel={handleUpdateCatalogueLabel}
+        />
+      )}
+
+      {ownersModalOpen && (
+        <OwnersModal
+          companies={companies}
+          entries={entries}
+          activeProject={activeProject}
+          onClose={() => setOwnersModalOpen(false)}
+          onUpdate={handleUpdateCompany}
+          onDelete={handleDeleteCompany}
+          onAdd={handleAddCompany}
         />
       )}
     </div>

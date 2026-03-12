@@ -3,6 +3,14 @@ export type IconSource =
   | { type: "url";     value: string }
   | { type: "letter";  value: string };
 
+export interface IconCatalogueEntry {
+  id:         number;
+  type:       "letter" | "iconify" | "url";
+  value:      string;
+  label?:     string;
+  createdAt?: string;
+}
+
 export type ServiceType = "free" | "paid";
 
 export const COMMON_LOGIN_METHODS = [

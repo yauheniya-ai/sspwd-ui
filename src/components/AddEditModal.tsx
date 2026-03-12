@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import TagBadge from "./TagBadge";
 import EntryIcon from "./EntryIcon";
-import type { Company, CompanyAddress, IconSource, PasswordEntry, ServiceType } from "../types";
+import type { Company, CompanyAddress, IconCatalogueEntry, IconSource, PasswordEntry, ServiceType } from "../types";
 import { ALL_CATEGORIES, ALL_TAGS } from "../data/mockData";
 import { COMMON_LOGIN_METHODS } from "../types";
 
@@ -10,11 +10,15 @@ interface AddEditModalProps {
   entry?: PasswordEntry | null;
   activeProject: string;
   companies?: Company[];
+  iconCatalogue?: IconCatalogueEntry[];
   onSave: (entry: Omit<PasswordEntry, "id" | "createdAt" | "updatedAt">) => void;
   onClose: () => void;
+  onOpenOwners?: () => void;
+  onDeleteFromCatalogue?: (id: number) => void;
+  onUpdateCatalogueLabel?: (id: number, label: string) => void;
 }
 
-const ICON_TABS = ["letter", "iconify", "url", "upload"] as const;
+const ICON_TABS = ["library", "letter", "iconify", "url", "upload"] as const;
 type IconTab = typeof ICON_TABS[number];
 
 const SERVICE_TYPES: Array<{ value: ServiceType; label: string }> = [
@@ -34,12 +38,18 @@ function IconPicker({
   onChange,
   title = "",
   activeProject,
+  iconCatalogue = [],
+  onDeleteFromCatalogue,
+  onUpdateCatalogueLabel,
 }: {
   label: string;
   value: IconSource | undefined;
   onChange: (icon: IconSource | undefined) => void;
   title?: string;
   activeProject: string;
+  iconCatalogue?: IconCatalogueEntry[];
+  onDeleteFromCatalogue?: (id: number) => void;
+  onUpdateCatalogueLabel?: (id: number, label: string) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [tab,        setTab]        = useState<IconTab>(
@@ -53,19 +63,26 @@ function IconPicker({
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(
     value?.type === "url" && value.value.startsWith("/api") ? value.value : null
   );
-  const [uploadName, setUploadName] = useState("");
-  const [uploading,  setUploading]  = useState(false);
+  const [uploadName,  setUploadName]  = useState("");
+  const [uploading,   setUploading]   = useState(false);
+
+  // library tab state
+  const [libSearch,    setLibSearch]    = useState("");
+  const [libEditId,    setLibEditId]    = useState<number | null>(null);
+  const [libEditLabel, setLibEditLabel] = useState("");
 
   const previewIcon: IconSource =
-    tab === "upload" && uploadedUrl ? { type: "url",     value: uploadedUrl }
-    : tab === "iconify"             ? { type: "iconify", value: iconValue }
-    : tab === "url"                 ? { type: "url",     value: iconValue }
+    tab === "library"                   ? (value ?? { type: "letter", value: title.charAt(0).toUpperCase() })
+    : tab === "upload" && uploadedUrl   ? { type: "url",     value: uploadedUrl }
+    : tab === "iconify"                 ? { type: "iconify", value: iconValue }
+    : tab === "url"                     ? { type: "url",     value: iconValue }
     : { type: "letter", value: iconValue || title.charAt(0).toUpperCase() };
 
   const emit = (t: IconTab, v: string, up: string | null) => {
     if (t === "upload" && up)   onChange({ type: "url",     value: up });
     else if (t === "iconify")   onChange({ type: "iconify", value: v });
     else if (t === "url")       onChange({ type: "url",     value: v });
+    else if (t === "library")   { /* handled by clicking catalogue item */ }
     else                        onChange(v ? { type: "letter", value: v } : undefined);
   };
 
@@ -89,11 +106,25 @@ function IconPicker({
     } finally { setUploading(false); }
   };
 
+  const filteredLib = iconCatalogue.filter((e) => {
+    if (!libSearch) return true;
+    const q = libSearch.toLowerCase();
+    return e.value.toLowerCase().includes(q) || (e.label ?? "").toLowerCase().includes(q);
+  });
+
+  const TAB_LABELS: Record<IconTab, string> = {
+    library: "library",
+    letter:  "letter",
+    iconify: "iconify",
+    url:     "url",
+    upload:  "↑ upload",
+  };
+
   return (
     <Field label={label}>
       <div className="flex items-center gap-3 mb-2">
         <EntryIcon icon={previewIcon} title={title || "?"} size={28} />
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {ICON_TABS.map((t) => (
             <button key={t} type="button"
               onClick={() => { setTab(t); emit(t, iconValue, uploadedUrl); }}
@@ -102,11 +133,91 @@ function IconPicker({
                   ? "border-blue-700 text-blue-400 bg-blue-700/10"
                   : "border-white/15 text-white/40 hover:border-white/30"
               }`}>
-              {t === "upload" ? "↑ upload" : t}
+              {TAB_LABELS[t]}
             </button>
           ))}
         </div>
       </div>
+
+      {/* Library tab */}
+      {tab === "library" && (
+        <div className="flex flex-col gap-2">
+          <input
+            className={inp}
+            value={libSearch}
+            onChange={(e) => setLibSearch(e.target.value)}
+            placeholder={iconCatalogue.length === 0 ? "Library is empty — use icons in entries to populate it" : "Search by name or label…"}
+            autoComplete="off"
+            data-lpignore="true"
+          />
+          {filteredLib.length > 0 && (
+            <div className="flex flex-col gap-1 max-h-52 overflow-y-auto pr-0.5">
+              {filteredLib.map((entry) => {
+                const icon: IconSource = { type: entry.type as any, value: entry.value };
+                const isSelected = value?.type === entry.type && value?.value === entry.value;
+                const displayLabel = entry.label || entry.value;
+                return (
+                  <div
+                    key={entry.id}
+                    className={`group flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer transition-colors ${
+                      isSelected
+                        ? "bg-blue-700/20 border border-blue-700/40"
+                        : "border border-transparent hover:bg-white/5"
+                    }`}
+                    onClick={() => onChange(icon)}
+                  >
+                    <EntryIcon icon={icon} title={displayLabel} size={22} />
+                    {libEditId === entry.id ? (
+                      <input
+                        className="flex-1 font-mono text-xs bg-black border border-blue-700 text-white px-2 py-0.5 rounded-sm focus:outline-none"
+                        value={libEditLabel}
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => setLibEditLabel(e.target.value)}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                          if (e.key === "Enter") {
+                            onUpdateCatalogueLabel?.(entry.id, libEditLabel);
+                            setLibEditId(null);
+                          } else if (e.key === "Escape") {
+                            setLibEditId(null);
+                          }
+                        }}
+                        onBlur={() => {
+                          onUpdateCatalogueLabel?.(entry.id, libEditLabel);
+                          setLibEditId(null);
+                        }}
+                      />
+                    ) : (
+                      <span className="flex-1 font-mono text-xs text-white/70 truncate" title={entry.value}>
+                        {displayLabel}
+                      </span>
+                    )}
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        title="Edit label"
+                        className="text-white/30 hover:text-blue-400 transition-colors"
+                        onClick={() => { setLibEditId(entry.id); setLibEditLabel(entry.label ?? ""); }}
+                      >
+                        <Icon icon="mdi:pencil-outline" className="text-xs" />
+                      </button>
+                      <button
+                        type="button"
+                        title="Remove from library"
+                        className="text-white/30 hover:text-red-400 transition-colors"
+                        onClick={() => onDeleteFromCatalogue?.(entry.id)}
+                      >
+                        <Icon icon="mdi:trash-can-outline" className="text-xs" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {(tab === "letter" || tab === "iconify" || tab === "url") && (
         <input className={inp} value={iconValue}
@@ -139,7 +250,8 @@ function IconPicker({
 }
 
 export default function AddEditModal({
-  entry, activeProject, companies = [], onSave, onClose,
+  entry, activeProject, companies = [], iconCatalogue = [], onSave, onClose, onOpenOwners,
+  onDeleteFromCatalogue, onUpdateCatalogueLabel,
 }: AddEditModalProps) {
   const isEdit = !!entry;
 
@@ -336,7 +448,10 @@ export default function AddEditModal({
 
           {/* Entry Icon */}
           <IconPicker label="Icon" value={entryIcon} onChange={setEntryIcon}
-            title={title} activeProject={activeProject} />
+            title={title} activeProject={activeProject}
+            iconCatalogue={iconCatalogue}
+            onDeleteFromCatalogue={onDeleteFromCatalogue}
+            onUpdateCatalogueLabel={onUpdateCatalogueLabel} />
 
           {/* Service type + Tags */}
           <div className="grid grid-cols-2 gap-3">
@@ -375,12 +490,21 @@ export default function AddEditModal({
 
           {/* Owner / Company */}
           <div className="flex flex-col gap-2">
-            <button type="button" onClick={() => setShowOwner((v) => !v)}
-              className="flex items-center gap-2 font-mono text-xs text-white/40 hover:text-white transition-colors w-fit">
-              <Icon icon={showOwner ? "mdi:chevron-down" : "mdi:chevron-right"} className="text-sm" />
-              <span className="uppercase tracking-widest">Owner / Company</span>
-              {ownerName && <span className="text-white/60 normal-case tracking-normal">— {ownerName}</span>}
-            </button>
+            <div className="flex items-center justify-between">
+              <button type="button" onClick={() => setShowOwner((v) => !v)}
+                className="flex items-center gap-2 font-mono text-xs text-white/40 hover:text-white transition-colors">
+                <Icon icon={showOwner ? "mdi:chevron-down" : "mdi:chevron-right"} className="text-sm" />
+                <span className="uppercase tracking-widest">Owner / Company</span>
+                {ownerName && <span className="text-white/60 normal-case tracking-normal">— {ownerName}</span>}
+              </button>
+              {onOpenOwners && (
+                <button type="button" onClick={onOpenOwners}
+                  className="font-mono text-xs text-white/30 hover:text-blue-400 transition-colors flex items-center gap-1">
+                  <Icon icon="mdi:table-edit" className="text-sm" />
+                  <span>All owners</span>
+                </button>
+              )}
+            </div>
 
             {showOwner && (
               <div className="flex flex-col gap-3 pl-3 border-l border-white/10">
@@ -396,7 +520,10 @@ export default function AddEditModal({
 
                 {/* Owner Icon — same 4 tabs */}
                 <IconPicker label="Owner icon" value={ownerIcon} onChange={setOwnerIcon}
-                  title={ownerName} activeProject={activeProject} />
+                  title={ownerName} activeProject={activeProject}
+                  iconCatalogue={iconCatalogue}
+                  onDeleteFromCatalogue={onDeleteFromCatalogue}
+                  onUpdateCatalogueLabel={onUpdateCatalogueLabel} />
 
                 {/* Address — split fields */}
                 <Field label="Street & number">
