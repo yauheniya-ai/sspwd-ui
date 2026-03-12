@@ -11,6 +11,9 @@ import deeplearningaiIcon from "../assets/icons/deeplearningai.svg";
 import ebayIcon          from "../assets/icons/ebay.svg";
 import aliexpressIcon    from "../assets/icons/aliexpress.svg";
 import alphabetIcon  from "../assets/icons/alphabet.png";
+import protonMailIcon  from "../assets/icons/proton-mail.svg";
+import protonIcon  from "../assets/icons/proton.svg";
+import apolloIcon  from "../assets/icons/apollo.svg";
 
 // ---------------------------------------------------------------------------
 // Companies
@@ -179,6 +182,60 @@ export const MOCK_COMPANIES: Company[] = [
     address: { street: "Valeska-Gert-Straße 5", city: "Berlin", postcode: "10243", country: "Germany", countryCode: "de" },
     revenue: 10_100_000_000,
   },
+  {
+    id: 28, name: "Proton AG",
+    icon: { type: "url", value: protonIcon },
+    address: { 
+          "street": "Route du Pré-Fleuri 17",
+          "city": "Plan-les-Ouates",
+          "state": "",
+          "postcode": "1228",
+          "country": "Switzerland",
+          "countryCode": "ch" 
+    },
+    revenue: 97_500_000,
+  },
+  {
+    id: 29,
+    name: "Apollo Global Management",
+    icon: { "type": "url", value: apolloIcon },
+    address: {
+      "street": "9 West 57th Street, 42nd Floor",
+      "city": "New York",
+      "postcode": "10019",
+      "country": "United States",
+      "countryCode": "us"
+    },
+    revenue: 33_700_000_000
+  },
+  {
+    "id": 30,
+    "name": "Bank of America Corporation",
+    "icon": { "type": "url", "value": "https://companieslogo.com/img/orig/BAC-4ba419c5.svg?t=1720244490" },
+    "address": {
+      "street": "100 North Tryon Street",
+      "city": "Charlotte",
+      "postcode": "28255",
+      "country": "United States",
+      "countryCode": "us"
+    },
+    "revenue": 98_300_000_000
+  },
+  {
+    "id": 31,
+    "name": "U.S. Bancorp",
+    "icon": { "type": "url", "value": "https://companieslogo.com/img/orig/USB-0cf73e25.svg?t=1720244494" },
+    "address": {
+      "street": "800 Nicollet Mall",
+      "city": "Minneapolis",
+      "state": "MN",
+      "postcode": "55402",
+      "country": "United States",
+      "countryCode": "us"
+    },
+    "revenue": 28_700_000_000
+  }
+
 ];
 
 // ---------------------------------------------------------------------------
@@ -376,7 +433,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     email: "me@outlook.com", password: "••••••••••",
     url: "https://outlook.com",
     icon: { type: "url", value: "https://upload.wikimedia.org/wikipedia/commons/c/cc/Microsoft_Outlook_Icon_%282025%E2%80%93present%29.svg" },
-    category: "Email", tags: ["Email"], serviceType: "paid",
+    category: "Email", tags: ["Technology", "Communication"], serviceType: "paid",
     loginMethods: ["Email / Password", "Microsoft", "Phone"],
     company: MOCK_COMPANIES[1], companyId: 2,
     userCreatedAt: "2009-06-01T00:00:00Z",
@@ -471,6 +528,46 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     loginMethods: ["Email / Password", "Google", "Apple", "SSO"],
     company: MOCK_COMPANIES[15], companyId: 16,
     createdAt: "2025-04-10T00:00:00Z", updatedAt: "2026-04-21T00:00:00Z",
+  },
+  {
+    id: 29, title: "Yahoo!",
+    email: "me@yahoo.com", password: "••••••••••",
+    url: "https://yahoo.com",
+    icon: { type: "iconify", value: "logos:yahoo" },
+    category: "Email", tags: ["Technology", "Communication"], serviceType: "free",
+    loginMethods: ["Email / Password"],
+    company: MOCK_COMPANIES[28], companyId: 29,
+    createdAt: "2023-07-10T00:00:00Z", updatedAt: "2026-01-26T00:00:00Z",
+  },
+  {
+    id: 30, title: "Proton Mail",
+    email: "me@proton.me", password: "••••••••••",
+    url: "https://proton.me",
+    icon: { type: "url", value: protonMailIcon },
+    category: "Email", tags: ["Technology", "Communication"], serviceType: "free",
+    loginMethods: ["Email / Password"],
+    company: MOCK_COMPANIES[27], companyId: 28,
+    createdAt: "2024-04-10T00:00:00Z", updatedAt: "2026-03-21T00:00:00Z",
+  },
+  {
+    id: 31, title: "Bank of America",
+    email: "me@example.com", password: "••••••••••",
+    url: "https://bankofamerica.com",
+    icon: { type: "url", value: "https://companieslogo.com/img/orig/BAC-4ba419c5.svg?t=1720244490" },
+    category: "Finance", tags: ["Banking"], serviceType: "free",
+    loginMethods: ["Email / Password", "Phone"],
+    company: MOCK_COMPANIES[29], companyId: 30,
+    createdAt: "2025-07-10T00:00:00Z", updatedAt: "2026-03-26T00:00:00Z",
+  },
+  {
+    id: 32, title: "U.S. Bank",
+    email: "me@example.me", password: "••••••••••",
+    url: "https://usbank.com",
+    icon: { type: "url", value: "https://companieslogo.com/img/orig/USB-0cf73e25.svg?t=1720244494" },
+    category: "Finance", tags: ["Banking"], serviceType: "free",
+    loginMethods: ["Email / Password", "Phone"],
+    company: MOCK_COMPANIES[30], companyId: 31,
+    createdAt: "2024-03-12T00:00:00Z", updatedAt: "2025-12-21T00:00:00Z",
   },
 ];
 

@@ -7,8 +7,6 @@ import type { PasswordEntry } from "../types";
 const SERVICE_TYPE_STYLE: Record<string, string> = {
   free:     "text-green-400 border-green-800",
   paid:     "text-blue-400 border-blue-800",
-  freemium: "text-yellow-400 border-yellow-800",
-  unknown:  "text-white/30 border-white/10",
 };
 
 interface PasswordCardProps {
@@ -20,6 +18,8 @@ interface PasswordCardProps {
 export default function PasswordCard({ entry, onSelect, selected }: PasswordCardProps) {
   const [pwVisible, setPwVisible] = useState(false);
   const [copied, setCopied]       = useState<"user" | "pwd" | null>(null);
+
+  const identifier = entry.email ?? entry.username;
 
   const copy = (text: string, field: "user" | "pwd") => {
     navigator.clipboard.writeText(text);
@@ -71,21 +71,23 @@ export default function PasswordCard({ entry, onSelect, selected }: PasswordCard
         )}
       </div>
 
-      {/* Username row */}
-      <div className="flex items-center gap-2 bg-black/40 border border-white/8 rounded-sm px-3 py-1.5">
-        <Icon icon="mdi:account-outline" className="text-white/30 text-sm shrink-0" />
-        <span className="font-mono text-xs text-white/60 flex-1 truncate">{entry.username}</span>
-        <button
-          onClick={(e) => { e.stopPropagation(); copy(entry.username, "user"); }}
-          className="text-white/20 hover:text-white transition-colors shrink-0"
-          title="Copy username"
-        >
-          <Icon
-            icon={copied === "user" ? "mdi:check" : "mdi:content-copy"}
-            className={`text-xs ${copied === "user" ? "text-green-400" : ""}`}
-          />
-        </button>
-      </div>
+      {/* Username / email row */}
+      {identifier && (
+        <div className="flex items-center gap-2 bg-black/40 border border-white/8 rounded-sm px-3 py-1.5">
+          <Icon icon={entry.email ? "mdi:email-outline" : "mdi:account-outline"} className="text-white/30 text-sm shrink-0" />
+          <span className="font-mono text-xs text-white/60 flex-1 truncate">{identifier}</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); copy(identifier, "user"); }}
+            className="text-white/20 hover:text-white transition-colors shrink-0"
+            title={entry.email ? "Copy email" : "Copy username"}
+          >
+            <Icon
+              icon={copied === "user" ? "mdi:check" : "mdi:content-copy"}
+              className={`text-xs ${copied === "user" ? "text-green-400" : ""}`}
+            />
+          </button>
+        </div>
+      )}
 
       {/* Password row */}
       <div className="flex items-center gap-2 bg-black/40 border border-white/8 rounded-sm px-3 py-1.5">
@@ -101,7 +103,7 @@ export default function PasswordCard({ entry, onSelect, selected }: PasswordCard
           <Icon icon={pwVisible ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="text-xs" />
         </button>
         <button
-          onClick={(e) => { e.stopPropagation(); copy(entry.password, "pwd"); }}
+          onClick={(e) => { e.stopPropagation(); copy(entry.password ?? "", "pwd"); }}
           className="text-white/20 hover:text-white transition-colors shrink-0"
           title="Copy password"
         >
