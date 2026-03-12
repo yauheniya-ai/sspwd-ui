@@ -61,12 +61,13 @@ export type SortField = "title" | "createdAt" | "updatedAt" | "category" | "user
 export type SortDir   = "asc" | "desc";
 
 export interface FilterState {
-  search:       string;
-  tags:         string[];
-  categories:   string[];
-  serviceTypes: ServiceType[];
-  sortField:    SortField;
-  sortDir:      SortDir;
+  search:        string;
+  tags:          string[];
+  categories:    string[];
+  serviceTypes:  ServiceType[];
+  loginMethods:  string[];
+  sortField:     SortField;
+  sortDir:       SortDir;
 }
 
 // ── Revenue formatting ────────────────────────────────────────────────────

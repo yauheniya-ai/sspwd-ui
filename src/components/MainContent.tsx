@@ -43,6 +43,12 @@ function applyFilter(entries: PasswordEntry[], filter: FilterState): PasswordEnt
     result = result.filter((e) => filter.serviceTypes.includes(e.serviceType));
   }
 
+  if (filter.loginMethods.length > 0) {
+    result = result.filter((e) =>
+      filter.loginMethods.every((m) => e.loginMethods.includes(m))
+    );
+  }
+
   // sort
   result.sort((a, b) => {
     let va: string;

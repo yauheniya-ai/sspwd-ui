@@ -10,7 +10,7 @@ import { MOCK_COMPANIES, MOCK_ENTRIES } from "./data/mockData";
 import type { Company } from "./types";
 
 const DEFAULT_FILTER: FilterState = {
-  search: "", tags: [], categories: [], serviceTypes: [],
+  search: "", tags: [], categories: [], serviceTypes: [], loginMethods: [],
   sortField: "title", sortDir: "asc",
 };
 

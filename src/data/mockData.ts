@@ -570,6 +570,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
 
 export const ALL_TAGS = Array.from(new Set(MOCK_ENTRIES.flatMap((e) => e.tags))).sort();
 export const ALL_CATEGORIES = Array.from(new Set(MOCK_ENTRIES.map((e) => e.category))).sort();
+export const ALL_LOGIN_METHODS = Array.from(new Set(MOCK_ENTRIES.flatMap((e) => e.loginMethods))).sort();
 export const SERVICE_TYPES: Array<{ value: string; label: string }> = [
   { value: "free", label: "Free" },
   { value: "paid", label: "Paid" },

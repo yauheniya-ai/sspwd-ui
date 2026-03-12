@@ -1,7 +1,7 @@
 import { Icon } from "@iconify/react";
 import TagBadge from "./TagBadge";
 import type { FilterState, SortField } from "../types";
-import { ALL_TAGS, ALL_CATEGORIES, SERVICE_TYPES } from "../data/mockData";
+import { ALL_TAGS, ALL_CATEGORIES, ALL_LOGIN_METHODS, SERVICE_TYPES } from "../data/mockData";
 
 interface SidebarProps {
   filter: FilterState;
@@ -56,6 +56,14 @@ export default function Sidebar({
         : [...f.serviceTypes, st as any],
     }));
 
+  const toggleLoginMethod = (m: string) =>
+    setFilter((f) => ({
+      ...f,
+      loginMethods: f.loginMethods.includes(m)
+        ? f.loginMethods.filter((x) => x !== m)
+        : [...f.loginMethods, m],
+    }));
+
   const isActiveCategory = (cat: string) => filter.categories.includes(cat);
 
   const toggleCategory = (cat: string) => {
@@ -69,12 +77,13 @@ export default function Sidebar({
   };
 
   const clearAll = () =>
-    setFilter((f) => ({ ...f, tags: [], categories: [], serviceTypes: [], search: "" }));
+    setFilter((f) => ({ ...f, tags: [], categories: [], serviceTypes: [], loginMethods: [], search: "" }));
 
   const hasFilters =
     filter.tags.length > 0 ||
     filter.categories.length > 0 ||
     filter.serviceTypes.length > 0 ||
+    filter.loginMethods.length > 0 ||
     filter.search !== "";
 
   return (
@@ -181,6 +190,23 @@ export default function Sidebar({
               className="text-base"
             />
           </button>
+        </div>
+      </section>
+
+      {/* Login methods */}
+      <section>
+        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+          Login method
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_LOGIN_METHODS.map((m) => (
+            <TagBadge
+              key={m}
+              label={m}
+              active={filter.loginMethods.includes(m)}
+              onClick={() => toggleLoginMethod(m)}
+            />
+          ))}
         </div>
       </section>
 
