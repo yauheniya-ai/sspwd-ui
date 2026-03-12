@@ -185,56 +185,27 @@ export const MOCK_COMPANIES: Company[] = [
   {
     id: 28, name: "Proton AG",
     icon: { type: "url", value: protonIcon },
-    address: { 
-          "street": "Route du Pré-Fleuri 17",
-          "city": "Plan-les-Ouates",
-          "state": "",
-          "postcode": "1228",
-          "country": "Switzerland",
-          "countryCode": "ch" 
-    },
+    address: { street: "Route du Pré-Fleuri 17", city: "Plan-les-Ouates", postcode: "1228", country: "Switzerland", countryCode: "ch" },
     revenue: 97_500_000,
   },
   {
-    id: 29,
-    name: "Apollo Global Management",
-    icon: { "type": "url", value: apolloIcon },
-    address: {
-      "street": "9 West 57th Street, 42nd Floor",
-      "city": "New York",
-      "postcode": "10019",
-      "country": "United States",
-      "countryCode": "us"
-    },
-    revenue: 33_700_000_000
+    id: 29, name: "Apollo Global Management",
+    icon: { type: "url", value: apolloIcon },
+    address: { street: "9 West 57th Street, 42nd Floor", city: "New York", state: "NY", postcode: "10019", country: "United States", countryCode: "us" },
+    revenue: 33_700_000_000,
   },
   {
-    "id": 30,
-    "name": "Bank of America Corporation",
-    "icon": { "type": "url", "value": "https://companieslogo.com/img/orig/BAC-4ba419c5.svg?t=1720244490" },
-    "address": {
-      "street": "100 North Tryon Street",
-      "city": "Charlotte",
-      "postcode": "28255",
-      "country": "United States",
-      "countryCode": "us"
-    },
-    "revenue": 98_300_000_000
+    id: 30, name: "Bank of America Corporation",
+    icon: { type: "url", value: "https://companieslogo.com/img/orig/BAC-4ba419c5.svg?t=1720244490" },
+    address: { street: "100 North Tryon Street", city: "Charlotte", state: "NC", postcode: "28255", country: "United States", countryCode: "us" },
+    revenue: 98_300_000_000,
   },
   {
-    "id": 31,
-    "name": "U.S. Bancorp",
-    "icon": { "type": "url", "value": "https://companieslogo.com/img/orig/USB-0cf73e25.svg?t=1720244494" },
-    "address": {
-      "street": "800 Nicollet Mall",
-      "city": "Minneapolis",
-      "state": "MN",
-      "postcode": "55402",
-      "country": "United States",
-      "countryCode": "us"
-    },
-    "revenue": 28_700_000_000
-  }
+    id: 31, name: "U.S. Bancorp",
+    icon: { type: "url", value: "https://companieslogo.com/img/orig/USB-0cf73e25.svg?t=1720244494" },
+    address: { street: "800 Nicollet Mall", city: "Minneapolis", state: "MN", postcode: "55402", country: "United States", countryCode: "us" },
+    revenue: 28_700_000_000,
+  },
 
 ];
 
@@ -251,6 +222,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Software", tags: ["Technology", "Design", "Creative", "Video"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[4], companyId: 5,
+    userCreatedAt: "2015-03-01T00:00:00Z",
     createdAt: "2023-01-15T10:00:00Z", updatedAt: "2024-03-10T08:30:00Z",
   },
   {
@@ -283,6 +255,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Telecom", tags: ["Internet"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[7], companyId: 8,
+    userCreatedAt: "2021-03-01T00:00:00Z",
     createdAt: "2021-03-10T00:00:00Z", updatedAt: "2024-01-01T00:00:00Z",
   },
   {
@@ -293,6 +266,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Technology", tags: ["Hosting", "Website"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[13], companyId: 14,
+    userCreatedAt: "2019-04-01T00:00:00Z",
     createdAt: "2020-05-20T00:00:00Z", updatedAt: "2024-05-20T00:00:00Z",
   },
   {
@@ -303,6 +277,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Technology", tags: ["Website", "Email", "Hosting"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[18], companyId: 19,
+    userCreatedAt: "2017-06-01T00:00:00Z",
     createdAt: "2019-08-01T00:00:00Z", updatedAt: "2023-08-01T00:00:00Z",
   },
   {
@@ -313,6 +288,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Education", tags: ["Learning"], serviceType: "paid",
     loginMethods: ["Email / Password", "Google", "Facebook"],
     company: MOCK_COMPANIES[16], companyId: 17,
+    userCreatedAt: "2020-08-01T00:00:00Z",
     createdAt: "2022-01-10T00:00:00Z", updatedAt: "2024-02-14T00:00:00Z",
   },
   {
@@ -323,6 +299,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Education", tags: ["Learning"], serviceType: "paid",
     loginMethods: ["Google"],
     company: MOCK_COMPANIES[17], companyId: 18,
+    userCreatedAt: "2022-09-01T00:00:00Z",
     createdAt: "2023-03-05T00:00:00Z", updatedAt: "2024-03-05T00:00:00Z",
   },
   {
@@ -344,6 +321,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Shopping", tags: ["Clothes"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[26], companyId: 27,
+    userCreatedAt: "2018-11-01T00:00:00Z",
     createdAt: "2020-02-20T00:00:00Z", updatedAt: "2024-06-01T00:00:00Z",
   },
   {
@@ -365,6 +343,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Finance", tags: ["Payment", "Technology"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[5], companyId: 6,
+    userCreatedAt: "2022-05-01T00:00:00Z",
     createdAt: "2023-07-01T00:00:00Z", updatedAt: "2024-07-01T00:00:00Z",
   },
   {
@@ -386,6 +365,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Technology", tags: ["Productivity"], serviceType: "free",
     loginMethods: ["Google", "Email / Password"],
     company: MOCK_COMPANIES[8], companyId: 9,
+    userCreatedAt: "2021-10-01T00:00:00Z",
     createdAt: "2023-06-01T00:00:00Z", updatedAt: "2024-06-01T00:00:00Z",
   },
   {
@@ -396,6 +376,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Technology", tags: ["Design"], serviceType: "free",
     loginMethods: ["Google", "Email / Password"],
     company: MOCK_COMPANIES[9], companyId: 10,
+    userCreatedAt: "2021-01-01T00:00:00Z",
     createdAt: "2022-08-15T00:00:00Z", updatedAt: "2024-08-15T00:00:00Z",
   },
   {
@@ -406,6 +387,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Telecom", tags: ["Mobile"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[10], companyId: 11,
+    userCreatedAt: "2020-01-01T00:00:00Z",
     createdAt: "2021-03-10T00:00:00Z", updatedAt: "2026-03-08T00:00:00Z",
   },
   {
@@ -416,6 +398,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Telecom", tags: ["Mobile"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[11], companyId: 12,
+    userCreatedAt: "2024-09-01T00:00:00Z",
     createdAt: "2025-03-10T00:00:00Z", updatedAt: "2026-03-08T00:00:00Z",
   },
   {
@@ -426,6 +409,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Technology", tags: ["Website", "Email", "Hosting"], serviceType: "paid",
     loginMethods: ["Email / Password", "Google"],
     company: MOCK_COMPANIES[12], companyId: 13,
+    userCreatedAt: "2023-12-01T00:00:00Z",
     createdAt: "2024-03-10T00:00:00Z", updatedAt: "2026-03-08T00:00:00Z",
   },
   {
@@ -447,6 +431,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Technology", tags: ["LLM", "API"], serviceType: "paid",
     loginMethods: ["Email / Password", "Google"],
     company: MOCK_COMPANIES[14], companyId: 15,
+    userCreatedAt: "2024-03-01T00:00:00Z",
     createdAt: "2024-04-10T00:00:00Z", updatedAt: "2026-01-11T00:00:00Z",
   },
   {
@@ -457,6 +442,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Software", tags: ["Design", "Modeling"], serviceType: "free",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[25], companyId: 26,
+    userCreatedAt: "2022-02-01T00:00:00Z",
     createdAt: "2024-04-10T00:00:00Z", updatedAt: "2026-01-11T00:00:00Z",
   },
   {
@@ -467,6 +453,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Software", tags: ["Design", "Modeling"], serviceType: "paid",
     loginMethods: ["Email / Password", "SSO"],
     company: MOCK_COMPANIES[24], companyId: 25,
+    userCreatedAt: "2023-01-01T00:00:00Z",
     createdAt: "2024-04-10T00:00:00Z", updatedAt: "2026-01-11T00:00:00Z",
   },
   {
@@ -477,6 +464,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Education", tags: ["AI", "Developer"], serviceType: "paid",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[19], companyId: 20,
+    userCreatedAt: "2024-01-01T00:00:00Z",
     createdAt: "2024-04-10T00:00:00Z", updatedAt: "2026-02-21T00:00:00Z",
   },
   {
@@ -487,6 +475,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Education", tags: ["AI", "Developer"], serviceType: "paid",
     loginMethods: ["Email / Password", "Google"],
     company: MOCK_COMPANIES[20], companyId: 21,
+    userCreatedAt: "2023-06-01T00:00:00Z",
     createdAt: "2024-04-10T00:00:00Z", updatedAt: "2026-02-21T00:00:00Z",
   },
   {
@@ -497,6 +486,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Shopping", tags: ["Material"], serviceType: "free",
     loginMethods: ["Email / Password", "Google", "Apple"],
     company: MOCK_COMPANIES[21], companyId: 22,
+    userCreatedAt: "2024-11-01T00:00:00Z",
     createdAt: "2025-04-10T00:00:00Z", updatedAt: "2026-03-21T00:00:00Z",
   },
   {
@@ -507,6 +497,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Shopping", tags: ["Material"], serviceType: "free",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[22], companyId: 23,
+    userCreatedAt: "2024-12-01T00:00:00Z",
     createdAt: "2025-04-10T00:00:00Z", updatedAt: "2026-03-21T00:00:00Z",
   },
   {
@@ -517,6 +508,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Technology", tags: ["Hosting", "API", "ML"], serviceType: "free",
     loginMethods: ["Email / Password", "GitHub", "Google"],
     company: MOCK_COMPANIES[23], companyId: 24,
+    userCreatedAt: "2024-10-01T00:00:00Z",
     createdAt: "2025-04-10T00:00:00Z", updatedAt: "2026-03-21T00:00:00Z",
   },
   {
@@ -527,6 +519,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Software", tags: ["Video", "Communication", "Conference"], serviceType: "free",
     loginMethods: ["Email / Password", "Google", "Apple", "SSO"],
     company: MOCK_COMPANIES[15], companyId: 16,
+    userCreatedAt: "2020-04-01T00:00:00Z",
     createdAt: "2025-04-10T00:00:00Z", updatedAt: "2026-04-21T00:00:00Z",
   },
   {
@@ -537,6 +530,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Email", tags: ["Technology", "Communication"], serviceType: "free",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[28], companyId: 29,
+    userCreatedAt: "2006-05-01T00:00:00Z",
     createdAt: "2023-07-10T00:00:00Z", updatedAt: "2026-01-26T00:00:00Z",
   },
   {
@@ -547,6 +541,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Email", tags: ["Technology", "Communication"], serviceType: "free",
     loginMethods: ["Email / Password"],
     company: MOCK_COMPANIES[27], companyId: 28,
+    userCreatedAt: "2024-01-01T00:00:00Z",
     createdAt: "2024-04-10T00:00:00Z", updatedAt: "2026-03-21T00:00:00Z",
   },
   {
@@ -557,6 +552,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Finance", tags: ["Banking"], serviceType: "free",
     loginMethods: ["Email / Password", "Phone"],
     company: MOCK_COMPANIES[29], companyId: 30,
+    userCreatedAt: "2025-06-01T00:00:00Z",
     createdAt: "2025-07-10T00:00:00Z", updatedAt: "2026-03-26T00:00:00Z",
   },
   {
@@ -567,6 +563,7 @@ export const MOCK_ENTRIES: PasswordEntry[] = [
     category: "Finance", tags: ["Banking"], serviceType: "free",
     loginMethods: ["Email / Password", "Phone"],
     company: MOCK_COMPANIES[30], companyId: 31,
+    userCreatedAt: "2022-07-01T00:00:00Z",
     createdAt: "2024-03-12T00:00:00Z", updatedAt: "2025-12-21T00:00:00Z",
   },
 ];
