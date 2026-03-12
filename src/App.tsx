@@ -18,7 +18,7 @@ export default function App() {
   const [activeProject,    setActiveProject]    = useState("mock");
   const [unlockedProjects, setUnlockedProjects] = useState<string[]>([]);
   const [entries,          setEntries]          = useState<PasswordEntry[]>(MOCK_ENTRIES);
-  const [companies]                             = useState<Company[]>(MOCK_COMPANIES);
+  const [companies,          setCompanies]       = useState<Company[]>(MOCK_COMPANIES);
   const [loading,          setLoading]          = useState(false);
   const [vaultError,       setVaultError]       = useState<string | null>(null);
   const [filter,           setFilter]           = useState<FilterState>(DEFAULT_FILTER);
@@ -27,26 +27,44 @@ export default function App() {
 
   // ── load entries for a project that is already unlocked ──
   const loadProject = async (project: string) => {
-    if (project === "mock") { setEntries(MOCK_ENTRIES); return; }
+    if (project === "mock") { setEntries(MOCK_ENTRIES); setCompanies(MOCK_COMPANIES); return; }
     setLoading(true); setVaultError(null); setSelectedId(null);
     try {
-      const res = await fetch(`/api/v1/entries?project=${encodeURIComponent(project)}`);
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const data = await res.json();
-      setEntries(data.map((e: any) => ({
+      const q = encodeURIComponent(project);
+      const [eRes, cRes] = await Promise.all([
+        fetch(`/api/v1/entries?project=${q}`),
+        fetch(`/api/v1/companies?project=${q}`),
+      ]);
+      if (!eRes.ok) throw new Error(`Server returned ${eRes.status}`);
+      const [entriesData, companiesData] = await Promise.all([
+        eRes.json(),
+        cRes.ok ? cRes.json() : [],
+      ]);
+      const companyMap = new Map<number, Company>(
+        (companiesData as any[]).map((c: any) => [c.id, {
+          id:      c.id,
+          name:    c.name,
+          icon:    c.icon    ?? undefined,
+          address: c.address ?? undefined,
+          revenue: c.revenue ?? undefined,
+        } as Company])
+      );
+      setCompanies([...companyMap.values()]);
+      setEntries((entriesData as any[]).map((e: any) => ({
         id:             e.id,
         title:          e.title,
-        username:       e.username   ?? undefined,
-        email:          e.email      ?? undefined,
-        password:       e.password   ?? undefined,
-        url:            e.url        ?? undefined,
-        notes:          e.notes      ?? undefined,
-        icon:           e.icon       ?? undefined,
-        category:       e.category   ?? "Other",
-        tags:           e.tags       ?? [],
-        serviceType:    e.service_type ?? "free",
-        loginMethods:   e.login_methods ?? [],
-        companyId:      e.company_id ?? undefined,
+        username:       e.username        ?? undefined,
+        email:          e.email           ?? undefined,
+        password:       e.password        ?? undefined,
+        url:            e.url             ?? undefined,
+        notes:          e.notes           ?? undefined,
+        icon:           e.icon            ?? undefined,
+        category:       e.category        ?? "Other",
+        tags:           e.tags            ?? [],
+        serviceType:    e.service_type    ?? "free",
+        loginMethods:   e.login_methods   ?? [],
+        companyId:      e.company_id      ?? undefined,
+        company:        e.company_id ? companyMap.get(e.company_id) : undefined,
         userCreatedAt:  e.user_created_at ?? undefined,
         createdAt:      e.created_at,
         updatedAt:      e.updated_at,
@@ -122,30 +140,72 @@ export default function App() {
     // real project — persist to backend
     const q = `?project=${encodeURIComponent(activeProject)}`;
     try {
+      // ── 1. Upsert company if owner details were provided ──────────────
+      let resolvedCompanyId: number | null = data.companyId ?? null;
+      let resolvedCompany: Company | undefined = data.company;
+
+      if (data.company?.name?.trim()) {
+        const companyBody = {
+          name:    data.company.name,
+          icon:    data.company.icon    ?? null,
+          address: data.company.address ?? null,
+          revenue: data.company.revenue ?? null,
+        };
+        if (resolvedCompanyId && resolvedCompanyId > 0) {
+          // update existing company
+          const cRes = await fetch(`/api/v1/companies/${resolvedCompanyId}${q}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(companyBody),
+          });
+          if (!cRes.ok) throw new Error("Failed to update company.");
+          const savedC = await cRes.json();
+          resolvedCompany = { id: savedC.id, name: savedC.name, icon: savedC.icon ?? undefined, address: savedC.address ?? undefined, revenue: savedC.revenue ?? undefined };
+          setCompanies((prev) => prev.map((c) => c.id === savedC.id ? resolvedCompany! : c));
+        } else {
+          // create new company
+          const cRes = await fetch(`/api/v1/companies${q}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(companyBody),
+          });
+          if (!cRes.ok) throw new Error("Failed to create company.");
+          const savedC = await cRes.json();
+          resolvedCompanyId = savedC.id;
+          resolvedCompany = { id: savedC.id, name: savedC.name, icon: savedC.icon ?? undefined, address: savedC.address ?? undefined, revenue: savedC.revenue ?? undefined };
+          setCompanies((prev) => [...prev, resolvedCompany!]);
+        }
+      }
+
+      // ── 2. Build entry body with all fields ───────────────────────────
+      const entryBody = {
+        title:           data.title,
+        username:        data.username        ?? null,
+        email:           data.email           ?? null,
+        password:        data.password        ?? null,
+        url:             data.url             ?? null,
+        notes:           data.notes           ?? null,
+        icon:            data.icon            ?? null,
+        category:        data.category        ?? "Other",
+        service_type:    data.serviceType     ?? "free",
+        tags:            data.tags            ?? [],
+        login_methods:   data.loginMethods    ?? [],
+        company_id:      resolvedCompanyId,
+        user_created_at: data.userCreatedAt   ?? null,
+      };
+
       if (modalEntry) {
         // update
         const res = await fetch(`/api/v1/entries/${modalEntry.id}${q}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title:           data.title,
-            username:        data.username        ?? null,
-            email:           data.email           ?? null,
-            password:        data.password        ?? null,
-            url:             data.url             ?? null,
-            notes:           data.notes           ?? null,
-            category:        data.category        ?? "Other",
-            tags:            data.tags            ?? [],
-            login_methods:   data.loginMethods    ?? [],
-            company_id:      data.companyId       ?? null,
-            user_created_at: data.userCreatedAt   ?? null,
-          }),
+          body: JSON.stringify(entryBody),
         });
         if (!res.ok) throw new Error("Failed to update entry.");
         const saved = await res.json();
         setEntries((prev) => prev.map((e) =>
           e.id === modalEntry.id
-            ? { ...e, ...data, id: saved.id, updatedAt: saved.updated_at }
+            ? { ...e, ...data, id: saved.id, updatedAt: saved.updated_at, company: resolvedCompany, companyId: resolvedCompanyId ?? undefined }
             : e
         ));
       } else {
@@ -153,25 +213,17 @@ export default function App() {
         const res = await fetch(`/api/v1/entries${q}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title:           data.title,
-            username:        data.username        ?? null,
-            email:           data.email           ?? null,
-            password:        data.password        ?? null,
-            url:             data.url             ?? null,
-            notes:           data.notes           ?? null,
-            category:        data.category        ?? "Other",
-            tags:            data.tags            ?? [],
-            login_methods:   data.loginMethods    ?? [],
-            company_id:      data.companyId       ?? null,
-            user_created_at: data.userCreatedAt   ?? null,
-          }),
+          body: JSON.stringify(entryBody),
         });
         if (!res.ok) throw new Error("Failed to create entry.");
         const saved = await res.json();
         const newEntry: PasswordEntry = {
-          ...data, id: saved.id,
-          createdAt: saved.created_at, updatedAt: saved.updated_at,
+          ...data,
+          id:        saved.id,
+          company:   resolvedCompany,
+          companyId: resolvedCompanyId ?? undefined,
+          createdAt: saved.created_at,
+          updatedAt: saved.updated_at,
         };
         setEntries((prev) => [...prev, newEntry]);
         setSelectedId(newEntry.id);
