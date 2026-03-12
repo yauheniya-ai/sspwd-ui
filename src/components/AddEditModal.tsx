@@ -239,16 +239,9 @@ export default function AddEditModal({
     onClose();
   };
 
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [onClose]);
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-lg bg-neutral-950 border border-white/15 rounded-sm shadow-2xl flex flex-col max-h-[92vh]">
 
