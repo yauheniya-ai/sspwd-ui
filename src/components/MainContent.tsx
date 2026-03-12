@@ -30,7 +30,7 @@ function applyFilter(entries: PasswordEntry[], filter: FilterState): PasswordEnt
 
   // tags (AND logic — entry must have ALL selected tags)
   if (filter.tags.length > 0) {
-    result = result.filter((e) => filter.tags.every((t) => e.tags.includes(t)));
+    result = result.filter((e) => filter.tags.some((t) => e.tags.includes(t)));
   }
 
   // categories
