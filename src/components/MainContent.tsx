@@ -21,7 +21,8 @@ function applyFilter(entries: PasswordEntry[], filter: FilterState): PasswordEnt
     result = result.filter(
       (e) =>
         e.title.toLowerCase().includes(q) ||
-        e.username.toLowerCase().includes(q) ||
+        (e.username ?? "").toLowerCase().includes(q) ||
+        (e.email ?? "").toLowerCase().includes(q) ||
         (e.url ?? "").toLowerCase().includes(q) ||
         (e.notes ?? "").toLowerCase().includes(q)
     );
