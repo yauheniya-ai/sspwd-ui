@@ -1,1 +1,96 @@
 @import "tailwindcss";
+
+/* ── Animated border button ─────────────────────────────────────────── */
+.animated-border-btn {
+  position: relative;
+  cursor: pointer;
+}
+
+.animated-border-btn .btn-line {
+  display: block;
+  position: absolute;
+}
+
+/* left side — blue, goes upward */
+.animated-border-btn .btn-line-1 {
+  width: 1px;
+  background-color: #1d4ed8;
+  left: 0;
+  bottom: 0;
+  animation: btn-move1 1500ms 0ms infinite ease;
+}
+
+/* top side — blue, goes left → right */
+.animated-border-btn .btn-line-2 {
+  height: 1px;
+  background-color: #1d4ed8;
+  left: 0;
+  top: 0;
+  animation: btn-move2 1500ms -375ms infinite ease;
+}
+
+/* right side — red, goes downward */
+.animated-border-btn .btn-line-3 {
+  width: 1px;
+  background-color: #b91c1c;
+  right: 0;
+  top: 0;
+  animation: btn-move3 1500ms -750ms infinite ease;
+}
+
+/* bottom side — red, goes right → left */
+.animated-border-btn .btn-line-4 {
+  height: 1px;
+  background-color: #b91c1c;
+  right: 0;
+  bottom: 0;
+  animation: btn-move4 1500ms -1125ms infinite ease;
+}
+
+/* on hover: stop animation, expand all lines to full border */
+.animated-border-btn:hover .btn-line-1 {
+  animation: none;
+  height: 100%;
+  bottom: 0;
+}
+.animated-border-btn:hover .btn-line-2 {
+  animation: none;
+  width: 100%;
+  left: 0;
+}
+.animated-border-btn:hover .btn-line-3 {
+  animation: none;
+  height: 100%;
+  top: 0;
+}
+.animated-border-btn:hover .btn-line-4 {
+  animation: none;
+  width: 100%;
+  right: 0;
+}
+
+@keyframes btn-move1 {
+  0%   { height: 100%; bottom: 0; }
+  54%  { height: 0;    bottom: 100%; }
+  55%  { height: 0;    bottom: 0; }
+  100% { height: 100%; bottom: 0; }
+}
+
+@keyframes btn-move2 {
+  0%   { width: 0;    left: 0; }
+  50%  { width: 100%; left: 0; }
+  100% { width: 0;    left: 100%; }
+}
+
+@keyframes btn-move3 {
+  0%   { height: 100%; top: 0; }
+  54%  { height: 0;    top: 100%; }
+  55%  { height: 0;    top: 0; }
+  100% { height: 100%; top: 0; }
+}
+
+@keyframes btn-move4 {
+  0%   { width: 0;    right: 0; }
+  55%  { width: 100%; right: 0; }
+  100% { width: 0;    right: 100%; }
+}

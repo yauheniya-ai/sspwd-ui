@@ -102,8 +102,12 @@ export default function MainContent({
         </p>
         <button
           onClick={onAdd}
-          className="flex items-center gap-1 font-mono text-xs text-white/50 border border-white/20 hover:border-red-700 hover:text-white px-3 py-1.5 rounded-sm transition-colors mt-1"
+          className="animated-border-btn flex items-center gap-1 font-mono text-xs text-white/50 hover:text-white px-3 py-1.5 transition-colors mt-1"
         >
+          <span className="btn-line btn-line-1" />
+          <span className="btn-line btn-line-2" />
+          <span className="btn-line btn-line-3" />
+          <span className="btn-line btn-line-4" />
           <Icon icon="mdi:plus" className="text-sm" />
           Add first entry
         </button>
@@ -120,8 +124,12 @@ export default function MainContent({
         </p>
         <button
           onClick={onAdd}
-          className="flex items-center gap-1 font-mono text-xs text-white/50 border border-white/15 hover:border-red-700 hover:text-white px-2.5 py-1 rounded-sm transition-colors"
+          className="animated-border-btn flex items-center gap-1 font-mono text-xs text-white/50 hover:text-white px-2.5 py-1 transition-colors"
         >
+          <span className="btn-line btn-line-1" />
+          <span className="btn-line btn-line-2" />
+          <span className="btn-line btn-line-3" />
+          <span className="btn-line btn-line-4" />
           <Icon icon="mdi:plus" className="text-sm" />
           Add entry
         </button>
