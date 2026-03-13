@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Icon } from "@iconify/react";
 import TagBadge from "./TagBadge";
 import type { FilterState, PasswordEntry, SortField } from "../types";
-import { SERVICE_TYPES } from "../data/mockData";
+import { SERVICE_TYPES, categoryIcon } from "../data/mockData";
 
 interface SidebarProps {
   entries: PasswordEntry[];
@@ -19,24 +19,6 @@ const SORT_OPTIONS: Array<{ value: SortField; label: string }> = [
   { value: "userCreatedAt", label: "Using since" },
 ];
 
-// Solid/filled iconify icons per category. Add new ones here as categories grow.
-const CATEGORY_ICONS: Record<string, string> = {
-  Education:  "mdi:school",
-  Email:      "mdi:email",
-  Finance:    "mdi:bank",
-  Hosting:    "mdi:server",
-  Internet:   "mdi:wifi",
-  Shopping:   "mdi:cart",
-  Software:   "fa7-solid:square-binary",
-  Technology: "pixel:technology",
-  Telecom:    "mingcute:radar-2-fill",
-  // fallback for anything not listed
-  Other:      "mdi:folder",
-};
-
-function categoryIcon(cat: string): string {
-  return CATEGORY_ICONS[cat] ?? "mdi:folder";
-}
 
 export default function Sidebar({
   entries,

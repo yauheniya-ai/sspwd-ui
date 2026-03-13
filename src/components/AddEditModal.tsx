@@ -73,6 +73,7 @@ function IconPicker({
   const [libSearch,    setLibSearch]    = useState("");
   const [libEditId,    setLibEditId]    = useState<number | null>(null);
   const [libEditLabel, setLibEditLabel] = useState("");
+  const [libOpen,      setLibOpen]      = useState(false);
 
   const previewIcon: IconSource =
     tab === "library"                   ? (value ?? { type: "letter", value: title.charAt(0).toUpperCase() })
@@ -159,126 +160,144 @@ function IconPicker({
         </div>
       </div>
 
-      {/* Library tab */}
+      {/* Library tab — opens a full overlay table */}
       {tab === "library" && (
-        <div className="flex flex-col gap-2">
-          <input
-            className={inp}
-            value={libSearch}
-            onChange={(e) => setLibSearch(e.target.value)}
-            placeholder={
-              entries.filter((e) => e.icon).length === 0 && iconCatalogue.length === 0
-                ? "Library is empty — add icons to entries to populate it"
-                : "Search by entry title…"
-            }
-            autoComplete="off"
-            data-lpignore="true"
-          />
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setLibOpen(true)}
+            className="flex items-center gap-2 font-mono text-xs border border-white/15 text-white/50 hover:text-white hover:border-blue-700 px-3 py-2 rounded-sm transition-colors cursor-pointer"
+          >
+            <Icon icon="mdi:image-multiple-outline" className="text-sm" />
+            Browse icon library
+            {(entryIconRows.length + filteredCatalogue.length) > 0 && (
+              <span className="text-white/25">({entryIconRows.length + filteredCatalogue.length})</span>
+            )}
+          </button>
+          {value && value.type !== "letter" && (
+            <span className="font-mono text-[10px] text-white/30 truncate max-w-[12rem]" title={value.value}>
+              {value.value}
+            </span>
+          )}
+        </div>
+      )}
 
-          {/* Section 1: icons sourced from existing entries */}
-          {entryIconRows.length > 0 && (
-            <div className="flex flex-col gap-1 max-h-52 overflow-y-auto pr-0.5">
-              <p className="font-mono text-[10px] text-white/25 uppercase tracking-widest px-1 mt-1">
-                From entries
-              </p>
-              {entryIconRows.map(({ icon, titles }) => {
-                const isSelected = value?.type === icon.type && value?.value === icon.value;
-                return (
-                  <div
-                    key={`${icon.type}::${icon.value}`}
-                    className={`group flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer transition-colors ${
-                      isSelected
-                        ? "bg-blue-700/20 border border-blue-700/40"
-                        : "border border-transparent hover:bg-white/5"
-                    }`}
-                    onClick={() => onChange(icon)}
-                  >
-                    <EntryIcon icon={icon} title={titles[0]} size={22} />
-                    <span className="flex-1 font-mono text-xs text-white/70 truncate" title={titles.join(", ")}>
-                      {titles.join(", ")}
-                    </span>
-                    <span className="font-mono text-[10px] text-white/25 shrink-0">{icon.type}</span>
-                  </div>
-                );
-              })}
+      {/* Icon library overlay */}
+      {libOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setLibOpen(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-neutral-950 border border-white/15 rounded-sm shadow-2xl flex flex-col max-h-[80vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* header */}
+            <div className="flex items-center gap-3 px-5 py-3 border-b border-white/10 shrink-0">
+              <h3 className="font-mono text-xs font-bold text-white uppercase tracking-widest shrink-0">Icon library</h3>
+              <input
+                className="flex-1 font-mono text-xs bg-black border border-white/15 text-white placeholder-white/25 px-3 py-1.5 rounded-sm focus:outline-none focus:border-blue-700 transition-colors"
+                value={libSearch}
+                onChange={(e) => setLibSearch(e.target.value)}
+                placeholder="Search by title or icon name…"
+                autoFocus
+                autoComplete="off"
+                data-lpignore="true"
+              />
+              <button type="button" onClick={() => setLibOpen(false)} className="ml-1 text-white/30 hover:text-white transition-colors shrink-0">
+                <Icon icon="mdi:close" className="text-lg" />
+              </button>
             </div>
-          )}
 
-          {/* Section 2: manually managed catalogue */}
-          {filteredCatalogue.length > 0 && (
-            <div className="flex flex-col gap-1 max-h-40 overflow-y-auto pr-0.5">
-              <p className="font-mono text-[10px] text-white/25 uppercase tracking-widest px-1 mt-1">
-                Bookmarked icons
-              </p>
-              {filteredCatalogue.map((entry) => {
-                const icon: IconSource = { type: entry.type as IconSource["type"], value: entry.value };
-                const isSelected = value?.type === entry.type && value?.value === entry.value;
-                const displayLabel = entry.label || entry.value;
-                return (
-                  <div
-                    key={entry.id}
-                    className={`group flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer transition-colors ${
-                      isSelected
-                        ? "bg-blue-700/20 border border-blue-700/40"
-                        : "border border-transparent hover:bg-white/5"
-                    }`}
-                    onClick={() => onChange(icon)}
-                  >
-                    <EntryIcon icon={icon} title={displayLabel} size={22} />
-                    {libEditId === entry.id ? (
-                      <input
-                        className="flex-1 font-mono text-xs bg-black border border-blue-700 text-white px-2 py-0.5 rounded-sm focus:outline-none"
-                        value={libEditLabel}
-                        autoFocus
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) => setLibEditLabel(e.target.value)}
-                        onKeyDown={(e) => {
-                          e.stopPropagation();
-                          if (e.key === "Enter") {
-                            onUpdateCatalogueLabel?.(entry.id, libEditLabel);
-                            setLibEditId(null);
-                          } else if (e.key === "Escape") {
-                            setLibEditId(null);
-                          }
-                        }}
-                        onBlur={() => {
-                          onUpdateCatalogueLabel?.(entry.id, libEditLabel);
-                          setLibEditId(null);
-                        }}
-                      />
-                    ) : (
-                      <span className="flex-1 font-mono text-xs text-white/70 truncate" title={entry.value}>
-                        {displayLabel}
-                      </span>
-                    )}
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        title="Edit label"
-                        className="text-white/30 hover:text-blue-400 transition-colors"
-                        onClick={() => { setLibEditId(entry.id); setLibEditLabel(entry.label ?? ""); }}
+            {/* table */}
+            <div className="overflow-y-auto flex-1">
+              {entryIconRows.length > 0 && (
+                <>
+                  <p className="font-mono text-[10px] text-white/25 uppercase tracking-widest px-5 py-2 border-b border-white/5">
+                    From entries ({entryIconRows.length})
+                  </p>
+                  {entryIconRows.map(({ icon, titles }) => {
+                    const isSelected = value?.type === icon.type && value?.value === icon.value;
+                    return (
+                      <div
+                        key={`${icon.type}::${icon.value}`}
+                        className={`flex items-center gap-3 px-5 py-2.5 cursor-pointer transition-colors border-b border-white/5 ${
+                          isSelected ? "bg-blue-700/15" : "hover:bg-white/5"
+                        }`}
+                        onClick={() => { onChange(icon); setLibOpen(false); }}
                       >
-                        <Icon icon="mdi:pencil-outline" className="text-xs" />
-                      </button>
-                      <button
-                        type="button"
-                        title="Remove from library"
-                        className="text-white/30 hover:text-red-400 transition-colors"
-                        onClick={() => onDeleteFromCatalogue?.(entry.id)}
+                        <EntryIcon icon={icon} title={titles[0]} size={24} />
+                        <span className="flex-1 font-mono text-xs text-white/70 truncate" title={titles.join(", ")}>{titles.join(", ")}</span>
+                        <span className="font-mono text-[10px] text-white/25 bg-white/5 px-1.5 py-0.5 rounded shrink-0">{icon.type}</span>
+                        {isSelected && <Icon icon="mdi:check" className="text-blue-400 text-sm shrink-0" />}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {filteredCatalogue.length > 0 && (
+                <>
+                  <p className="font-mono text-[10px] text-white/25 uppercase tracking-widest px-5 py-2 border-b border-white/5">
+                    Bookmarked ({filteredCatalogue.length})
+                  </p>
+                  {filteredCatalogue.map((entry) => {
+                    const icon: IconSource = { type: entry.type as IconSource["type"], value: entry.value };
+                    const isSelected = value?.type === entry.type && value?.value === entry.value;
+                    const displayLabel = entry.label || entry.value;
+                    return (
+                      <div
+                        key={entry.id}
+                        className={`group flex items-center gap-3 px-5 py-2.5 cursor-pointer transition-colors border-b border-white/5 ${
+                          isSelected ? "bg-blue-700/15" : "hover:bg-white/5"
+                        }`}
+                        onClick={() => { onChange(icon); setLibOpen(false); }}
                       >
-                        <Icon icon="mdi:trash-can-outline" className="text-xs" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                        <EntryIcon icon={icon} title={displayLabel} size={24} />
+                        {libEditId === entry.id ? (
+                          <input
+                            className="flex-1 font-mono text-xs bg-black border border-blue-700 text-white px-2 py-0.5 rounded-sm focus:outline-none"
+                            value={libEditLabel}
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => setLibEditLabel(e.target.value)}
+                            onKeyDown={(e) => {
+                              e.stopPropagation();
+                              if (e.key === "Enter") { onUpdateCatalogueLabel?.(entry.id, libEditLabel); setLibEditId(null); }
+                              else if (e.key === "Escape") { setLibEditId(null); }
+                            }}
+                            onBlur={() => { onUpdateCatalogueLabel?.(entry.id, libEditLabel); setLibEditId(null); }}
+                          />
+                        ) : (
+                          <span className="flex-1 font-mono text-xs text-white/70 truncate" title={entry.value}>{displayLabel}</span>
+                        )}
+                        <span className="font-mono text-[10px] text-white/25 bg-white/5 px-1.5 py-0.5 rounded shrink-0">{entry.type}</span>
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button type="button" title="Edit label"
+                            className="text-white/30 hover:text-blue-400 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); setLibEditId(entry.id); setLibEditLabel(entry.label ?? ""); }}>
+                            <Icon icon="mdi:pencil-outline" className="text-sm" />
+                          </button>
+                          <button type="button" title="Remove from library"
+                            className="text-white/30 hover:text-red-400 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); onDeleteFromCatalogue?.(entry.id); }}>
+                            <Icon icon="mdi:trash-can-outline" className="text-sm" />
+                          </button>
+                        </div>
+                        {isSelected && <Icon icon="mdi:check" className="text-blue-400 text-sm shrink-0" />}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {entryIconRows.length === 0 && filteredCatalogue.length === 0 && (
+                <p className="font-mono text-xs text-white/30 px-5 py-10 text-center">
+                  {libSearch ? `No results for "${libSearch}"` : "Library is empty — add icons to entries to populate it"}
+                </p>
+              )}
             </div>
-          )}
-
-          {/* No results */}
-          {entryIconRows.length === 0 && filteredCatalogue.length === 0 && libSearch && (
-            <p className="font-mono text-xs text-white/30 px-1">No results for "{libSearch}"</p>
-          )}
+          </div>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import PasswordCard from "./PasswordCard";
 import type { FilterState, PasswordEntry } from "../types";
-
+import { categoryIcon } from "../data/mockData";
 import { Icon } from "@iconify/react";
 
 interface MainContentProps {
@@ -116,9 +116,9 @@ export default function MainContent({
   }
 
   return (
-    <div className="h-full overflow-y-auto px-6 py-5">
-      {/* Summary bar */}
-      <div className="flex items-center gap-4 mb-6">
+    <div className="h-full flex flex-col overflow-hidden">
+      {/* Summary bar — sticky, never scrolls */}
+      <div className="flex items-center gap-4 px-6 py-4 border-b border-white/5 shrink-0">
         <p className="font-mono text-xs text-white/35">
           {filtered.length} {filtered.length === 1 ? "entry" : "entries"} &middot; {groups.length} {groups.length === 1 ? "category" : "categories"}
         </p>
@@ -135,12 +135,14 @@ export default function MainContent({
         </button>
       </div>
 
-      {/* Category groups */}
+      {/* Scrollable category groups */}
+      <div className="flex-1 overflow-y-auto px-6 py-5">
       <div className="flex flex-col gap-10">
         {groups.map(([category, items]) => (
           <section key={category}>
             {/* Category heading */}
             <div className="flex items-center gap-3 mb-4">
+              <Icon icon={categoryIcon(category)} className="text-sm text-white/30 shrink-0" />
               <h2 className="font-mono text-xs font-semibold text-white/40 uppercase tracking-[0.2em]">
                 {category}
               </h2>
@@ -161,6 +163,7 @@ export default function MainContent({
             </div>
           </section>
         ))}
+      </div>
       </div>
     </div>
   );

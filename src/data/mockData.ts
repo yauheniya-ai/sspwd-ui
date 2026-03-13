@@ -582,3 +582,22 @@ export const SERVICE_TYPES: Array<{ value: string; label: string }> = [
   { value: "free", label: "Free" },
   { value: "paid", label: "Paid" },
 ];
+
+// Shared category → iconify icon map used by Sidebar and MainContent
+export const CATEGORY_ICONS: Record<string, string> = {
+  Education:  "mdi:school",
+  Email:      "mdi:email",
+  Finance:    "mdi:bank",
+  Hosting:    "mdi:server",
+  Internet:   "mdi:wifi",
+  Shopping:   "mdi:cart",
+  Social:     "mdi:account-group",
+  Software:   "fa7-solid:square-binary",
+  Technology: "pixel:technology",
+  Telecom:    "mingcute:radar-2-fill",
+  Other:      "mdi:folder",
+};
+
+export function categoryIcon(cat: string): string {
+  return CATEGORY_ICONS[cat] ?? "mdi:folder";
+}
