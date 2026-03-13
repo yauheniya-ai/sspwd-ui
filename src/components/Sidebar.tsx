@@ -1,9 +1,11 @@
+import { useMemo } from "react";
 import { Icon } from "@iconify/react";
 import TagBadge from "./TagBadge";
-import type { FilterState, SortField } from "../types";
-import { ALL_TAGS, ALL_CATEGORIES, ALL_LOGIN_METHODS, ALL_COUNTRIES, SERVICE_TYPES } from "../data/mockData";
+import type { FilterState, PasswordEntry, SortField } from "../types";
+import { SERVICE_TYPES } from "../data/mockData";
 
 interface SidebarProps {
+  entries: PasswordEntry[];
   filter: FilterState;
   setFilter: React.Dispatch<React.SetStateAction<FilterState>>;
   categoryCounts: Record<string, number>;
@@ -37,11 +39,28 @@ function categoryIcon(cat: string): string {
 }
 
 export default function Sidebar({
+  entries,
   filter,
   setFilter,
   categoryCounts,
   onSelectCategory,
 }: SidebarProps) {
+  const availableTags = useMemo(
+    () => Array.from(new Set(entries.flatMap((e) => e.tags))).sort(),
+    [entries],
+  );
+  const availableCategories = useMemo(
+    () => Array.from(new Set(entries.map((e) => e.category))).sort(),
+    [entries],
+  );
+  const availableLoginMethods = useMemo(
+    () => Array.from(new Set(entries.flatMap((e) => e.loginMethods))).sort(),
+    [entries],
+  );
+  const availableCountries = useMemo(
+    () => Array.from(new Set(entries.map((e) => e.company?.address?.country).filter((c): c is string => !!c))).sort(),
+    [entries],
+  );
   const toggleTag = (tag: string) =>
     setFilter((f) => ({
       ...f,
@@ -142,7 +161,7 @@ export default function Sidebar({
           List by category
         </label>
         <ul className="flex flex-col gap-0.5">
-          {ALL_CATEGORIES.map((cat) => (
+          {availableCategories.map((cat) => (
             <li key={cat}>
               <button
                 onClick={() => toggleCategory(cat)}
@@ -213,7 +232,7 @@ export default function Sidebar({
           Filter by tags
         </label>
         <div className="flex flex-wrap gap-1.5">
-          {ALL_TAGS.map((tag) => (
+          {availableTags.map((tag) => (
             <TagBadge
               key={tag}
               label={tag}
@@ -236,6 +255,7 @@ export default function Sidebar({
               label={label}
               active={filter.serviceTypes.includes(value as any)}
               onClick={() => toggleServiceType(value)}
+              color={value === "free" ? "green" : "blue"}
             />
           ))}
         </div>
@@ -247,12 +267,13 @@ export default function Sidebar({
           Login method
         </label>
         <div className="flex flex-wrap gap-1.5">
-          {ALL_LOGIN_METHODS.map((m) => (
+          {availableLoginMethods.map((m) => (
             <TagBadge
               key={m}
               label={m}
               active={filter.loginMethods.includes(m)}
               onClick={() => toggleLoginMethod(m)}
+              color="blue"
             />
           ))}
         </div>
@@ -264,12 +285,13 @@ export default function Sidebar({
           HQ country
         </label>
         <div className="flex flex-wrap gap-1.5">
-          {ALL_COUNTRIES.map((c) => (
+          {availableCountries.map((c) => (
             <TagBadge
               key={c}
               label={c}
               active={filter.countries.includes(c)}
               onClick={() => toggleCountry(c)}
+              color="purple"
             />
           ))}
         </div>

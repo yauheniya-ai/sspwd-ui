@@ -357,6 +357,7 @@ export default function App() {
       <div className="flex flex-1 min-h-0">
         <div className="w-64 shrink-0">
           <Sidebar
+            entries={entries}
             filter={filter}
             setFilter={setFilter}
             categoryCounts={categoryCounts}
