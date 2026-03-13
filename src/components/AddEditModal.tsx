@@ -10,6 +10,7 @@ interface AddEditModalProps {
   entry?: PasswordEntry | null;
   activeProject: string;
   companies?: Company[];
+  entries?: PasswordEntry[];
   iconCatalogue?: IconCatalogueEntry[];
   onSave: (entry: Omit<PasswordEntry, "id" | "createdAt" | "updatedAt">) => void;
   onClose: () => void;
@@ -38,6 +39,7 @@ function IconPicker({
   onChange,
   title = "",
   activeProject,
+  entries = [],
   iconCatalogue = [],
   onDeleteFromCatalogue,
   onUpdateCatalogueLabel,
@@ -47,6 +49,7 @@ function IconPicker({
   onChange: (icon: IconSource | undefined) => void;
   title?: string;
   activeProject: string;
+  entries?: PasswordEntry[];
   iconCatalogue?: IconCatalogueEntry[];
   onDeleteFromCatalogue?: (id: number) => void;
   onUpdateCatalogueLabel?: (id: number, label: string) => void;
@@ -106,7 +109,24 @@ function IconPicker({
     } finally { setUploading(false); }
   };
 
-  const filteredLib = iconCatalogue.filter((e) => {
+  // Build entry-based icon suggestions from all existing entries (those that have an icon)
+  const entryIconRows = (() => {
+    const q = libSearch.toLowerCase();
+    const withIcon = entries.filter((e) => e.icon != null);
+    const filtered = q
+      ? withIcon.filter((e) => e.title.toLowerCase().includes(q))
+      : withIcon;
+    // Deduplicate by (type, value) but collect all titles per icon value
+    const byKey = new Map<string, { icon: IconSource; titles: string[] }>();
+    for (const e of filtered) {
+      const key = `${e.icon!.type}::${e.icon!.value}`;
+      if (!byKey.has(key)) byKey.set(key, { icon: e.icon!, titles: [] });
+      byKey.get(key)!.titles.push(e.title);
+    }
+    return Array.from(byKey.values());
+  })();
+
+  const filteredCatalogue = iconCatalogue.filter((e) => {
     if (!libSearch) return true;
     const q = libSearch.toLowerCase();
     return e.value.toLowerCase().includes(q) || (e.label ?? "").toLowerCase().includes(q);
@@ -146,14 +166,52 @@ function IconPicker({
             className={inp}
             value={libSearch}
             onChange={(e) => setLibSearch(e.target.value)}
-            placeholder={iconCatalogue.length === 0 ? "Library is empty — use icons in entries to populate it" : "Search by name or label…"}
+            placeholder={
+              entries.filter((e) => e.icon).length === 0 && iconCatalogue.length === 0
+                ? "Library is empty — add icons to entries to populate it"
+                : "Search by entry title…"
+            }
             autoComplete="off"
             data-lpignore="true"
           />
-          {filteredLib.length > 0 && (
+
+          {/* Section 1: icons sourced from existing entries */}
+          {entryIconRows.length > 0 && (
             <div className="flex flex-col gap-1 max-h-52 overflow-y-auto pr-0.5">
-              {filteredLib.map((entry) => {
-                const icon: IconSource = { type: entry.type as any, value: entry.value };
+              <p className="font-mono text-[10px] text-white/25 uppercase tracking-widest px-1 mt-1">
+                From entries
+              </p>
+              {entryIconRows.map(({ icon, titles }) => {
+                const isSelected = value?.type === icon.type && value?.value === icon.value;
+                return (
+                  <div
+                    key={`${icon.type}::${icon.value}`}
+                    className={`group flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer transition-colors ${
+                      isSelected
+                        ? "bg-blue-700/20 border border-blue-700/40"
+                        : "border border-transparent hover:bg-white/5"
+                    }`}
+                    onClick={() => onChange(icon)}
+                  >
+                    <EntryIcon icon={icon} title={titles[0]} size={22} />
+                    <span className="flex-1 font-mono text-xs text-white/70 truncate" title={titles.join(", ")}>
+                      {titles.join(", ")}
+                    </span>
+                    <span className="font-mono text-[10px] text-white/25 shrink-0">{icon.type}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Section 2: manually managed catalogue */}
+          {filteredCatalogue.length > 0 && (
+            <div className="flex flex-col gap-1 max-h-40 overflow-y-auto pr-0.5">
+              <p className="font-mono text-[10px] text-white/25 uppercase tracking-widest px-1 mt-1">
+                Bookmarked icons
+              </p>
+              {filteredCatalogue.map((entry) => {
+                const icon: IconSource = { type: entry.type as IconSource["type"], value: entry.value };
                 const isSelected = value?.type === entry.type && value?.value === entry.value;
                 const displayLabel = entry.label || entry.value;
                 return (
@@ -216,6 +274,11 @@ function IconPicker({
               })}
             </div>
           )}
+
+          {/* No results */}
+          {entryIconRows.length === 0 && filteredCatalogue.length === 0 && libSearch && (
+            <p className="font-mono text-xs text-white/30 px-1">No results for "{libSearch}"</p>
+          )}
         </div>
       )}
 
@@ -250,7 +313,7 @@ function IconPicker({
 }
 
 export default function AddEditModal({
-  entry, activeProject, companies = [], iconCatalogue = [], onSave, onClose, onOpenOwners,
+  entry, activeProject, companies = [], entries = [], iconCatalogue = [], onSave, onClose, onOpenOwners,
   onDeleteFromCatalogue, onUpdateCatalogueLabel,
 }: AddEditModalProps) {
   const isEdit = !!entry;
@@ -449,6 +512,7 @@ export default function AddEditModal({
           {/* Entry Icon */}
           <IconPicker label="Icon" value={entryIcon} onChange={setEntryIcon}
             title={title} activeProject={activeProject}
+            entries={entries}
             iconCatalogue={iconCatalogue}
             onDeleteFromCatalogue={onDeleteFromCatalogue}
             onUpdateCatalogueLabel={onUpdateCatalogueLabel} />
@@ -521,6 +585,7 @@ export default function AddEditModal({
                 {/* Owner Icon — same 4 tabs */}
                 <IconPicker label="Owner icon" value={ownerIcon} onChange={setOwnerIcon}
                   title={ownerName} activeProject={activeProject}
+                  entries={entries}
                   iconCatalogue={iconCatalogue}
                   onDeleteFromCatalogue={onDeleteFromCatalogue}
                   onUpdateCatalogueLabel={onUpdateCatalogueLabel} />

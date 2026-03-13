@@ -400,6 +400,7 @@ export default function App() {
           entry={modalEntry}
           activeProject={activeProject}
           companies={companies}
+          entries={entries}
           iconCatalogue={iconCatalogue}
           onSave={handleSave}
           onClose={() => setModalEntry(undefined)}
