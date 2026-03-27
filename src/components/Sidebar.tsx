@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { Icon } from "@iconify/react";
 import TagBadge from "./TagBadge";
 import type { FilterState, PasswordEntry, SortField } from "../types";
-import { SERVICE_TYPES, categoryIcon } from "../data/mockData";
+import { SERVICE_TYPES } from "../data/mockData";
+import { CATEGORY_META } from "../constants";
 
 interface SidebarProps {
   entries: PasswordEntry[];
@@ -31,10 +32,20 @@ export default function Sidebar({
     () => Array.from(new Set(entries.flatMap((e) => e.tags))).sort(),
     [entries],
   );
-  const availableCategories = useMemo(
-    () => Array.from(new Set(entries.map((e) => e.category))).sort(),
-    [entries],
-  );
+  const sortedCategories = useMemo(() => {
+    const pinned = ["other", "archive"];
+    const main = Object.keys(CATEGORY_META)
+      .filter((k) => !pinned.includes(k))
+      .sort((a, b) => CATEGORY_META[a].label.localeCompare(CATEGORY_META[b].label));
+    return [...main, "other", "archive"];
+  }, []);
+
+  const normalizedCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const [k, v] of Object.entries(categoryCounts))
+      map[k.toLowerCase()] = (map[k.toLowerCase()] ?? 0) + v;
+    return map;
+  }, [categoryCounts]);
   const availableLoginMethods = useMemo(
     () => Array.from(new Set(entries.flatMap((e) => e.loginMethods))).sort(),
     [entries],
@@ -143,7 +154,7 @@ export default function Sidebar({
           List by category
         </label>
         <ul className="flex flex-col gap-0.5">
-          {availableCategories.map((cat) => (
+          {sortedCategories.map((cat) => (
             <li key={cat}>
               <button
                 onClick={() => toggleCategory(cat)}
@@ -153,19 +164,23 @@ export default function Sidebar({
                     : "text-white/55 hover:text-white hover:bg-white/5 border-l-2 border-transparent"
                 }`}
               >
-                <Icon
-                  icon={categoryIcon(cat)}
-                  className={`text-base shrink-0 transition-colors ${
-                    isActiveCategory(cat) ? "text-red-400" : "text-white/30 group-hover:text-white/60"
-                  }`}
-                />
-                <span className="flex-1">{cat}</span>
+                {(() => {
+                  const CatIcon = CATEGORY_META[cat]?.icon;
+                  return CatIcon ? (
+                    <CatIcon
+                      className={`text-base shrink-0 transition-colors ${
+                        isActiveCategory(cat) ? "text-red-400" : "text-white/30 group-hover:text-white/60"
+                      }`}
+                    />
+                  ) : null;
+                })()}
+                <span className="flex-1">{CATEGORY_META[cat]?.label ?? cat}</span>
                 <span
                   className={`text-xs font-mono tabular-nums transition-colors ${
                     isActiveCategory(cat) ? "text-white/80" : "text-white/25 group-hover:text-white/50"
                   }`}
                 >
-                  {categoryCounts[cat] ?? 0}
+                  {normalizedCounts[cat] ?? 0}
                 </span>
               </button>
             </li>

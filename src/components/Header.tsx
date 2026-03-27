@@ -92,7 +92,7 @@ export default function Header({
   };
 
   const options: Array<{ value: string; label: string; icon: string; iconClass: string }> = [
-    { value: "mock",       label: "mockData",  icon: "si:unlock-fill",          iconClass: "text-white/40" },
+    { value: "mock",       label: "mockData",   icon: "si:unlock-fill",    iconClass: "text-white/40" },
     ...projects.map((p) => ({
       value: p,
       label: p,

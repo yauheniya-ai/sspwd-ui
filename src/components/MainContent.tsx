@@ -35,7 +35,9 @@ function applyFilter(entries: PasswordEntry[], filter: FilterState): PasswordEnt
 
   // categories
   if (filter.categories.length > 0) {
-    result = result.filter((e) => filter.categories.includes(e.category));
+    result = result.filter((e) =>
+      filter.categories.some((fc) => fc.toLowerCase() === e.category.toLowerCase()),
+    );
   }
 
   // service types
