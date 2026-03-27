@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "@iconify/react";
+import type { SVGProps } from "react";
+import {
+  IconCheck, IconCopy, IconDatabase, IconChevronDown,
+  IconUnlock, IconLock, IconFolderPlus, IconClose,
+  IconEye, IconEyeOff,
+} from "../constants/icons";
 
 export interface ProjectSession {
   name: string;       // "default", "work", etc.
@@ -91,18 +96,21 @@ export default function Header({
     }
   };
 
-  const options: Array<{ value: string; label: string; icon: string; iconClass: string }> = [
-    { value: "mock",       label: "mockData",   icon: "si:unlock-fill",    iconClass: "text-white/40" },
+  type ProjectOption = { value: string; label: string; Icon?: (props: SVGProps<SVGSVGElement>) => React.ReactElement; iconClass?: string };
+
+  const options: ProjectOption[] = [
+    { value: "mock",       label: "mockData", Icon: IconUnlock, iconClass: "text-white/40" },
     ...projects.map((p) => ({
       value: p,
       label: p,
-      icon:      unlockedProjects.includes(p) ? "si:unlock-fill"        : "si:lock-muted-fill",
-      iconClass: unlockedProjects.includes(p) ? "text-green-400"        : "text-white/40",
+      Icon:      unlockedProjects.includes(p) ? IconUnlock : IconLock,
+      iconClass: unlockedProjects.includes(p) ? "text-green-400" : "text-white/40",
     })),
-    { value: "__create__", label: "+ new",     icon: "",                         iconClass: "" },
+    { value: "__create__", label: "+ new" },
   ];
 
   const activeOption = options.find((o) => o.value === activeProject) ?? options[0];
+  const ActiveIcon = activeOption.Icon;
   const [dropOpen, setDropOpen] = useState(false);
 
   return (
@@ -120,15 +128,16 @@ export default function Header({
             <span className="font-mono text-sm bg-black/70 text-white px-3 py-0.5 border border-white/30 rounded-sm">
               pip install sspwd
             </span>
-            <Icon icon={copied ? "mdi:check" : "mdi:content-copy"}
-              className={`text-white/80 text-base transition-colors ${copied ? "text-green-300" : "group-hover:text-white"}`} />
+            {copied
+              ? <IconCheck className={`w-4 h-4 text-white/80 text-green-300 transition-colors`} />
+              : <IconCopy className={`w-4 h-4 text-white/80 transition-colors group-hover:text-white`} />}
             {copied && <span className="font-mono text-xs text-green-300 animate-pulse">copied!</span>}
           </button>
         </div>
 
         {/* Right — project selector */}
         <div className="flex items-center gap-2">
-          <Icon icon="mdi:database" className="text-white/60 text-sm shrink-0" />
+          <IconDatabase className="w-4 h-4 text-white/60 shrink-0" />
 
           <div className="relative">
             {/* Trigger */}
@@ -136,28 +145,30 @@ export default function Header({
               onClick={() => setDropOpen((v) => !v)}
               className="flex items-center gap-2 font-mono text-xs text-white bg-black/60 border border-white/30 pl-3 pr-8 py-1.5 rounded-sm hover:bg-black/80 focus:outline-none focus:border-white/60 transition-colors min-w-36"
             >
-              {activeOption.icon && <Icon icon={activeOption.icon} className={`text-sm shrink-0 ${activeOption.iconClass}`} />}
+              {ActiveIcon && <ActiveIcon className={`w-4 h-4 shrink-0 ${activeOption.iconClass ?? ""}`} />}
               <span>{activeOption.label}</span>
             </button>
-            <Icon icon="mdi:chevron-down"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 text-sm pointer-events-none" />
+            <IconChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
 
             {/* Dropdown list */}
             {dropOpen && (
               <div className="absolute right-0 top-full mt-1 z-50 min-w-full bg-neutral-900 border border-white/20 rounded-sm shadow-2xl overflow-hidden"
                 onMouseLeave={() => setDropOpen(false)}>
-                {options.map((o) => (
-                  <button
-                    key={o.value}
-                    onClick={() => { setDropOpen(false); handleSelectChange(o.value); }}
-                    className={`w-full flex items-center gap-2 px-3 py-2 font-mono text-xs text-left hover:bg-white/10 transition-colors ${
-                      o.value === activeProject ? "text-white bg-white/5" : "text-white/70"
-                    }`}
-                  >
-                    {o.icon && <Icon icon={o.icon} className={`text-sm shrink-0 ${o.iconClass}`} />}
-                    {o.label}
-                  </button>
-                ))}
+                {options.map((o) => {
+                  const OIcon = o.Icon;
+                  return (
+                    <button
+                      key={o.value}
+                      onClick={() => { setDropOpen(false); handleSelectChange(o.value); }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 font-mono text-xs text-left hover:bg-white/10 transition-colors ${
+                        o.value === activeProject ? "text-white bg-white/5" : "text-white/70"
+                      }`}
+                    >
+                      {OIcon && <OIcon className={`w-4 h-4 shrink-0 ${o.iconClass ?? ""}`} />}
+                      {o.label}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -176,14 +187,13 @@ export default function Header({
 
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <Icon icon={modal === "unlock" ? "si:lock-muted-fill" : "mdi:folder-plus-outline"}
-                  className="text-white/60" />
+                {modal === "unlock" ? <IconLock className="w-5 h-5 text-white/60" /> : <IconFolderPlus className="w-5 h-5 text-white/60" />}
                 <h2 className="font-mono font-bold text-white text-sm">
                   {modal === "unlock" ? pending : "New project"}
                 </h2>
               </div>
               <button onClick={() => setModal(null)} className="text-white/30 hover:text-white">
-                <Icon icon="mdi:close" />
+                <IconClose className="w-5 h-5" />
               </button>
             </div>
 
@@ -219,7 +229,7 @@ export default function Header({
                   />
                   <button type="button" onClick={() => setPwVisible(v => !v)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">
-                    <Icon icon={pwVisible ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="text-sm" />
+                    {pwVisible ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -239,7 +249,7 @@ export default function Header({
               <button onClick={handleSubmit} disabled={busy}
                 className="flex-1 flex items-center justify-center gap-1.5 font-mono text-xs font-semibold bg-blue-700 hover:bg-blue-600 disabled:opacity-40 text-white rounded-sm py-2 transition-colors">
                 {busy ? "…" : modal === "unlock"
-                  ? <><Icon icon="si:unlock-fill" className="text-sm" />Unlock</>
+                  ? <><IconUnlock className="w-4 h-4" />Unlock</>
                   : "Create"}
               </button>
             </div>

@@ -1,9 +1,14 @@
 import { useRef, useState } from "react";
-import { Icon } from "@iconify/react";
+import {
+  IconClose, IconCheck, IconPencil, IconDelete,
+  IconImageMultiple, IconUpload, IconEye, IconEyeOff,
+  IconDice, IconChevronDown, IconChevronRight, IconTableEdit,
+} from "../constants/icons";
 import TagBadge from "./TagBadge";
 import EntryIcon from "./EntryIcon";
 import type { Company, CompanyAddress, IconCatalogueEntry, IconSource, PasswordEntry, ServiceType } from "../types";
-import { ALL_CATEGORIES, ALL_TAGS } from "../data/mockData";
+import { ALL_TAGS } from "../data/mockData";
+import { CATEGORY_META } from "../constants";
 import { COMMON_LOGIN_METHODS } from "../types";
 
 interface AddEditModalProps {
@@ -151,7 +156,7 @@ function IconPicker({
               onClick={() => { setTab(t); emit(t, iconValue, uploadedUrl); }}
               className={`font-mono text-xs px-2.5 py-0.5 border rounded-sm transition-colors ${
                 tab === t
-                  ? "border-blue-700 text-blue-400 bg-blue-700/10"
+                  ? "border-white/40 text-white bg-white/10"
                   : "border-white/15 text-white/40 hover:border-white/30"
               }`}>
               {TAB_LABELS[t]}
@@ -166,9 +171,9 @@ function IconPicker({
           <button
             type="button"
             onClick={() => setLibOpen(true)}
-            className="flex items-center gap-2 font-mono text-xs border border-white/15 text-white/50 hover:text-white hover:border-blue-700 px-3 py-2 rounded-sm transition-colors cursor-pointer"
+            className="flex items-center gap-2 font-mono text-xs border border-white/15 text-white/50 hover:text-white hover:border-white/50 px-3 py-2 rounded-sm transition-colors cursor-pointer"
           >
-            <Icon icon="mdi:image-multiple-outline" className="text-sm" />
+            <IconImageMultiple className="w-4 h-4" />
             Browse icon library
             {(entryIconRows.length + filteredCatalogue.length) > 0 && (
               <span className="text-white/25">({entryIconRows.length + filteredCatalogue.length})</span>
@@ -205,7 +210,7 @@ function IconPicker({
                 data-lpignore="true"
               />
               <button type="button" onClick={() => setLibOpen(false)} className="ml-1 text-white/30 hover:text-white transition-colors shrink-0">
-                <Icon icon="mdi:close" className="text-lg" />
+                <IconClose className="w-5 h-5" />
               </button>
             </div>
 
@@ -229,7 +234,7 @@ function IconPicker({
                         <EntryIcon icon={icon} title={titles[0]} size={24} />
                         <span className="flex-1 font-mono text-xs text-white/70 truncate" title={titles.join(", ")}>{titles.join(", ")}</span>
                         <span className="font-mono text-[10px] text-white/25 bg-white/5 px-1.5 py-0.5 rounded shrink-0">{icon.type}</span>
-                        {isSelected && <Icon icon="mdi:check" className="text-blue-400 text-sm shrink-0" />}
+                        {isSelected && <IconCheck className="w-4 h-4 text-blue-400 shrink-0" />}
                       </div>
                     );
                   })}
@@ -276,15 +281,15 @@ function IconPicker({
                           <button type="button" title="Edit label"
                             className="text-white/30 hover:text-blue-400 transition-colors"
                             onClick={(e) => { e.stopPropagation(); setLibEditId(entry.id); setLibEditLabel(entry.label ?? ""); }}>
-                            <Icon icon="mdi:pencil-outline" className="text-sm" />
+                            <IconPencil className="w-4 h-4" />
                           </button>
                           <button type="button" title="Remove from library"
                             className="text-white/30 hover:text-red-400 transition-colors"
                             onClick={(e) => { e.stopPropagation(); onDeleteFromCatalogue?.(entry.id); }}>
-                            <Icon icon="mdi:trash-can-outline" className="text-sm" />
+                            <IconDelete className="w-4 h-4" />
                           </button>
                         </div>
-                        {isSelected && <Icon icon="mdi:check" className="text-blue-400 text-sm shrink-0" />}
+                        {isSelected && <IconCheck className="w-4 h-4 text-blue-400 shrink-0" />}
                       </div>
                     );
                   })}
@@ -315,10 +320,10 @@ function IconPicker({
       {tab === "upload" && (
         <>
           <div onClick={() => fileRef.current?.click()}
-            className="flex flex-col items-center justify-center gap-2 border border-dashed border-white/20 rounded-sm py-3 cursor-pointer hover:border-blue-700 hover:bg-blue-700/5 transition-colors">
+            className="flex flex-col items-center justify-center gap-2 border border-dashed border-white/20 rounded-sm py-3 cursor-pointer hover:border-white/50 hover:bg-white/5 transition-colors">
             {uploadedUrl
               ? <img src={uploadedUrl} alt="preview" className="h-8 w-8 object-contain" />
-              : <Icon icon="mdi:cloud-upload-outline" className="text-xl text-white/30" />}
+              : <IconUpload className="w-5 h-5 text-white/30" />}
             <span className="font-mono text-xs text-white/40">
               {uploading ? "Uploading…" : uploadName || "Click to upload PNG / SVG / WEBP"}
             </span>
@@ -352,6 +357,9 @@ export default function AddEditModal({
   const [userCreatedAt, setUserCreatedAt] = useState(entry?.userCreatedAt?.slice(0, 10) ?? "");
   const [pwVisible,   setPwVisible]   = useState(false);
   const [newTag,      setNewTag]      = useState("");
+  const [catOpen,     setCatOpen]     = useState(false);
+  const [tagOpen,     setTagOpen]     = useState(false);
+  const [companyOpen, setCompanyOpen] = useState(false);
 
   // ── icon ─────────────────────────────────────────────────────────────
   const [entryIcon, setEntryIcon] = useState<IconSource | undefined>(entry?.icon);
@@ -449,7 +457,7 @@ export default function AddEditModal({
             </h2>
           </div>
           <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
-            <Icon icon="mdi:close" className="text-lg" />
+            <IconClose className="w-5 h-5" />
           </button>
         </div>
 
@@ -463,12 +471,38 @@ export default function AddEditModal({
                 placeholder="e.g. GitHub" autoComplete="off" data-lpignore="true" />
             </Field>
             <Field label="Category">
-              <input className={inp} value={category} onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Software" list="modal-category-list"
-                autoComplete="off" data-lpignore="true" />
-              <datalist id="modal-category-list">
-                {ALL_CATEGORIES.map((c) => <option key={c} value={c} />)}
-              </datalist>
+              <div className="relative">
+                <button type="button"
+                  className={`${inp} flex items-center justify-between`}
+                  onClick={() => setCatOpen((v) => !v)}
+                  onBlur={() => setTimeout(() => setCatOpen(false), 150)}>
+                  <span className={category ? "text-white" : "text-white/25"}>
+                    {category
+                      ? (CATEGORY_META[category.toLowerCase()]?.label ?? category)
+                      : "Select category…"}
+                  </span>
+                  <IconChevronDown className="w-3 h-3 text-white/40 shrink-0" />
+                </button>
+                {catOpen && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-black border border-white/15 rounded-sm max-h-48 overflow-y-auto shadow-lg">
+                    {Object.entries(CATEGORY_META).map(([key, meta]) => {
+                      const CatIcon = meta.icon;
+                      return (
+                        <button key={key} type="button"
+                          onMouseDown={() => { setCategory(key); setCatOpen(false); }}
+                          className={`w-full flex items-center gap-2 px-3 py-1.5 font-mono text-xs text-left transition-colors ${
+                            category.toLowerCase() === key
+                              ? "bg-red-700/20 text-red-400"
+                              : "text-white/60 hover:bg-red-700/10 hover:text-red-300"
+                          }`}>
+                          <CatIcon className="w-3.5 h-3.5 shrink-0" />
+                          {meta.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </Field>
           </div>
 
@@ -493,14 +527,14 @@ export default function AddEditModal({
                   placeholder="Enter or generate" autoComplete="new-password" />
                 <button type="button" onClick={() => setPwVisible((v) => !v)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">
-                  <Icon icon={pwVisible ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="text-sm" />
+                  {pwVisible ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
                 </button>
               </div>
               <button type="button"
                 onClick={() => { setPassword(generatePassword()); setPwVisible(true); }}
                 className="border border-white/15 px-2 rounded-sm text-white/40 hover:text-white hover:border-blue-700 transition-colors"
                 title="Generate">
-                <Icon icon="mdi:dice-6-outline" className="text-base" />
+                <IconDice className="w-4 h-4" />
               </button>
             </div>
           </Field>
@@ -515,7 +549,7 @@ export default function AddEditModal({
           <Field label="Login methods">
             <div className="flex flex-wrap gap-1.5 mb-2">
               {COMMON_LOGIN_METHODS.map((m) => (
-                <TagBadge key={m} label={m} size="sm"
+                <TagBadge key={m} label={m} size="sm" color="blue"
                   active={loginMethods.includes(m)}
                   onClick={() => toggleLoginMethod(m)} />
               ))}
@@ -542,6 +576,7 @@ export default function AddEditModal({
               <div className="flex gap-1.5">
                 {SERVICE_TYPES.map(({ value, label }) => (
                   <TagBadge key={value} label={label}
+                    color={value === "free" ? "green" : "blue"}
                     active={serviceType === value} onClick={() => setServiceType(value)} />
                 ))}
               </div>
@@ -552,14 +587,24 @@ export default function AddEditModal({
                   <TagBadge key={t} label={t} active removable size="sm" onRemove={() => setTags(tags.filter((x) => x !== t))} />
                 ))}
               </div>
-              <div className="flex gap-1">
-                <input className={`${inp} flex-1`} value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(newTag); } }}
-                  placeholder="Tag + Enter" list="modal-tag-list" autoComplete="off" data-lpignore="true" />
-                <datalist id="modal-tag-list">
-                  {ALL_TAGS.map((t) => <option key={t} value={t} />)}
-                </datalist>
+              <div className="relative">
+                <input className={`${inp} w-full`} value={newTag}
+                  onChange={(e) => { setNewTag(e.target.value); setTagOpen(true); }}
+                  onFocus={() => setTagOpen(true)}
+                  onBlur={() => setTimeout(() => setTagOpen(false), 150)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(newTag); setTagOpen(false); } }}
+                  placeholder="Add tag…" autoComplete="off" data-lpignore="true" />
+                {tagOpen && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-black border border-white/15 rounded-sm max-h-36 overflow-y-auto shadow-lg">
+                    {ALL_TAGS.filter((t) => !tags.includes(t) && t.toLowerCase().includes(newTag.toLowerCase())).map((t) => (
+                      <button key={t} type="button"
+                        onMouseDown={() => { addTag(t); setTagOpen(false); }}
+                        className="w-full flex items-center px-3 py-1.5 font-mono text-xs text-white/60 hover:bg-red-700/10 hover:text-red-300 transition-colors text-left">
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </Field>
           </div>
@@ -576,14 +621,14 @@ export default function AddEditModal({
             <div className="flex items-center justify-between">
               <button type="button" onClick={() => setShowOwner((v) => !v)}
                 className="flex items-center gap-2 font-mono text-xs text-white/40 hover:text-white transition-colors">
-                <Icon icon={showOwner ? "mdi:chevron-down" : "mdi:chevron-right"} className="text-sm" />
+                {showOwner ? <IconChevronDown className="w-4 h-4" /> : <IconChevronRight className="w-4 h-4" />}
                 <span className="uppercase tracking-widest">Owner / Company</span>
                 {ownerName && <span className="text-white/60 normal-case tracking-normal">— {ownerName}</span>}
               </button>
               {onOpenOwners && (
                 <button type="button" onClick={onOpenOwners}
-                  className="font-mono text-xs text-white/30 hover:text-blue-400 transition-colors flex items-center gap-1">
-                  <Icon icon="mdi:table-edit" className="text-sm" />
+                  className="font-mono text-xs text-white/30 hover:text-purple-400 transition-colors flex items-center gap-1">
+                  <IconTableEdit className="w-4 h-4" />
                   <span>All owners</span>
                 </button>
               )}
@@ -592,13 +637,31 @@ export default function AddEditModal({
             {showOwner && (
               <div className="flex flex-col gap-3 pl-3 border-l border-white/10">
                 <Field label="Company name">
-                  <input className={inp} value={ownerName}
-                    onChange={(e) => { setOwnerName(e.target.value); fillCompanyFromExisting(e.target.value); }}
-                    placeholder="e.g. Alphabet Inc." list="company-list"
-                    autoComplete="off" data-lpignore="true" />
-                  <datalist id="company-list">
-                    {companies.map((c) => <option key={c.id} value={c.name} />)}
-                  </datalist>
+                  <div className="relative">
+                    <input className={inpPurple} value={ownerName}
+                      onChange={(e) => { setOwnerName(e.target.value); fillCompanyFromExisting(e.target.value); setCompanyOpen(true); }}
+                      onFocus={() => setCompanyOpen(true)}
+                      onBlur={() => setTimeout(() => setCompanyOpen(false), 150)}
+                      placeholder="e.g. Alphabet Inc."
+                      autoComplete="off" data-lpignore="true" />
+                    {companyOpen && companies.filter((c) => c.name.toLowerCase().includes(ownerName.toLowerCase())).length > 0 && (
+                      <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-black border border-white/15 rounded-sm max-h-36 overflow-y-auto shadow-lg">
+                        {companies
+                          .filter((c) => c.name.toLowerCase().includes(ownerName.toLowerCase()))
+                          .map((c) => (
+                            <button key={c.id} type="button"
+                              onMouseDown={() => { setOwnerName(c.name); fillCompanyFromExisting(c.name); setCompanyOpen(false); }}
+                              className={`w-full flex items-center px-3 py-1.5 font-mono text-xs text-left transition-colors ${
+                                ownerName === c.name
+                                  ? "bg-purple-700/20 text-purple-400"
+                                  : "text-white/60 hover:bg-purple-700/10 hover:text-purple-300"
+                              }`}>
+                              {c.name}
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
                 </Field>
 
                 {/* Owner Icon — same 4 tabs */}
@@ -611,37 +674,37 @@ export default function AddEditModal({
 
                 {/* Address — split fields */}
                 <Field label="Street & number">
-                  <input className={inp} value={ownerStreet} onChange={(e) => setOwnerStreet(e.target.value)}
+                  <input className={inpPurple} value={ownerStreet} onChange={(e) => setOwnerStreet(e.target.value)}
                     placeholder="345 Park Ave" autoComplete="off" data-lpignore="true" />
                 </Field>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="City">
-                    <input className={inp} value={ownerCity} onChange={(e) => setOwnerCity(e.target.value)}
+                    <input className={inpPurple} value={ownerCity} onChange={(e) => setOwnerCity(e.target.value)}
                       placeholder="San Jose" autoComplete="off" data-lpignore="true" />
                   </Field>
                   <Field label="State">
-                    <input className={inp} value={ownerState} onChange={(e) => setOwnerState(e.target.value)}
+                    <input className={inpPurple} value={ownerState} onChange={(e) => setOwnerState(e.target.value)}
                       placeholder="CA" autoComplete="off" data-lpignore="true" />
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Postcode">
-                    <input className={inp} value={ownerPost} onChange={(e) => setOwnerPost(e.target.value)}
+                    <input className={inpPurple} value={ownerPost} onChange={(e) => setOwnerPost(e.target.value)}
                       placeholder="95110" autoComplete="off" data-lpignore="true" />
                   </Field>
                   <Field label="Country">
-                    <input className={inp} value={ownerCountry} onChange={(e) => setOwnerCountry(e.target.value)}
+                    <input className={inpPurple} value={ownerCountry} onChange={(e) => setOwnerCountry(e.target.value)}
                       placeholder="United States" autoComplete="off" data-lpignore="true" />
                   </Field>
                 </div>
                 <Field label="Country code (ISO 2-letter)">
-                  <input className={inp} value={ownerCode} onChange={(e) => setOwnerCode(e.target.value.toLowerCase())}
+                  <input className={inpPurple} value={ownerCode} onChange={(e) => setOwnerCode(e.target.value.toLowerCase())}
                     placeholder="us" maxLength={2} autoComplete="off" data-lpignore="true" />
                   <p className="font-mono text-xs text-white/25 mt-1">Used for flag icon, e.g. "us", "de", "gb".</p>
                 </Field>
 
                 <Field label="Annual revenue (USD)">
-                  <input className={inp} value={ownerRevenue} onChange={(e) => setOwnerRevenue(e.target.value)}
+                  <input className={inpPurple} value={ownerRevenue} onChange={(e) => setOwnerRevenue(e.target.value)}
                     placeholder="e.g. 307400000000" autoComplete="off" data-lpignore="true" />
                   <p className="font-mono text-xs text-white/25 mt-1">Raw number in USD. Displayed as $307.4B in UI.</p>
                 </Field>
@@ -674,6 +737,7 @@ export default function AddEditModal({
 }
 
 const inp = "w-full font-mono text-xs bg-black border border-white/15 text-white placeholder-white/25 px-3 py-2 rounded-sm focus:outline-none focus:border-blue-700 transition-colors";
+const inpPurple = "w-full font-mono text-xs bg-black border border-white/15 text-white placeholder-white/25 px-3 py-2 rounded-sm focus:outline-none focus:border-purple-700 transition-colors";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

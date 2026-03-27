@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { Icon } from "@iconify/react";
 import EntryIcon from "./EntryIcon";
+import { IconClose, IconSearch, IconPlus } from "../constants/icons";
 import type { Company, CompanyAddress, IconSource, PasswordEntry } from "../types";
 import { formatRevenue } from "../types";
 
@@ -276,14 +276,14 @@ export default function OwnersModal({
             <p className="font-mono text-xs text-white/30 mt-0.5">{companies.length} total</p>
           </div>
           <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
-            <Icon icon="mdi:close" className="text-lg" />
+            <IconClose className="w-5 h-5" />
           </button>
         </div>
 
         {/* Toolbar */}
         <div className="flex items-center gap-3 px-6 py-3 border-b border-white/10 shrink-0">
           <div className="relative flex-1">
-            <Icon icon="mdi:magnify" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30 text-sm" />
+            <IconSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
             <input
               className={`${inp} pl-8`}
               value={search}
@@ -298,7 +298,7 @@ export default function OwnersModal({
             onClick={() => { setAddOpen((v) => !v); setAddForm(emptyForm()); }}
             className="font-mono text-xs border border-white/15 text-white/50 hover:text-white hover:border-white/30 px-3 py-2 rounded-sm transition-colors flex items-center gap-1.5 shrink-0"
           >
-            <Icon icon="mdi:plus" />
+            <IconPlus className="w-4 h-4" />
             New owner
           </button>
         </div>

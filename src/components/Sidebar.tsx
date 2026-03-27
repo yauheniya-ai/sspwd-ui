@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { Icon } from "@iconify/react";
 import TagBadge from "./TagBadge";
+import { IconSearch, IconCloseCircle, IconSortAsc, IconSortDesc } from "../constants/icons";
 import type { FilterState, PasswordEntry, SortField } from "../types";
 import { SERVICE_TYPES } from "../data/mockData";
 import { CATEGORY_META } from "../constants";
@@ -112,14 +112,11 @@ export default function Sidebar({
 
       {/* Search — autocomplete/autofill fully disabled so browsers don't show the fingerprint/password prompt */}
       <section>
-        <label className="block font-mono text-xs text-white/50 mb-1.5 uppercase tracking-widest">
+        <label className="block font-mono text-xs text-white/70 mb-1.5 uppercase tracking-widest">
           Search
         </label>
         <div className="relative">
-          <Icon
-            icon="mdi:magnify"
-            className="absolute left-2 top-1/2 -translate-y-1/2 text-white/30 text-base pointer-events-none"
-          />
+          <IconSearch className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
           <input
             type="search"
             name="sspwd-search"
@@ -143,14 +140,14 @@ export default function Sidebar({
           onClick={clearAll}
           className="flex items-center gap-1 font-mono text-xs text-red-400 hover:text-red-300 transition-colors w-fit"
         >
-          <Icon icon="mdi:close-circle" />
+          <IconCloseCircle className="w-4 h-4" />
           Clear all filters
         </button>
       )}
 
       {/* Category tree */}
       <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+        <label className="block font-mono text-xs text-white/70 mb-2 uppercase tracking-widest">
           List by category
         </label>
         <ul className="flex flex-col gap-0.5">
@@ -177,7 +174,7 @@ export default function Sidebar({
                 <span className="flex-1">{CATEGORY_META[cat]?.label ?? cat}</span>
                 <span
                   className={`text-xs font-mono tabular-nums transition-colors ${
-                    isActiveCategory(cat) ? "text-white/80" : "text-white/25 group-hover:text-white/50"
+                    isActiveCategory(cat) ? "text-white/80" : "text-white/25 group-hover:text-white/70"
                   }`}
                 >
                   {normalizedCounts[cat] ?? 0}
@@ -190,7 +187,7 @@ export default function Sidebar({
 
       {/* Sort */}
       <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+        <label className="block font-mono text-xs text-white/70 mb-2 uppercase tracking-widest">
           Sort by
         </label>
         <div className="flex gap-1">
@@ -210,12 +207,9 @@ export default function Sidebar({
           <button
             onClick={() => setFilter((f) => ({ ...f, sortDir: f.sortDir === "asc" ? "desc" : "asc" }))}
             title={filter.sortDir === "asc" ? "Ascending" : "Descending"}
-            className="border border-white/20 px-2 py-1.5 rounded-sm text-white/50 hover:text-white hover:border-blue-700 transition-colors"
+            className="border border-white/20 px-2 py-1.5 rounded-sm text-white/70 hover:text-white hover:border-blue-700 transition-colors"
           >
-            <Icon
-              icon={filter.sortDir === "asc" ? "mdi:sort-ascending" : "mdi:sort-descending"}
-              className="text-base"
-            />
+            {filter.sortDir === "asc" ? <IconSortAsc className="w-4 h-4" /> : <IconSortDesc className="w-4 h-4" />}
           </button>
         </div>
       </section>
@@ -225,7 +219,7 @@ export default function Sidebar({
 
       {/* Filter by tags */}
       <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+        <label className="block font-mono text-xs text-white/70 mb-2 uppercase tracking-widest">
           Filter by tags
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -242,7 +236,7 @@ export default function Sidebar({
 
       {/* Service type */}
       <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+        <label className="block font-mono text-xs text-white/70 mb-2 uppercase tracking-widest">
           Service type
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -260,7 +254,7 @@ export default function Sidebar({
 
       {/* Login methods */}
       <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+        <label className="block font-mono text-xs text-white/70 mb-2 uppercase tracking-widest">
           Login method
         </label>
         <div className="flex flex-wrap gap-1.5">
@@ -278,7 +272,7 @@ export default function Sidebar({
 
       {/* Headquarters country */}
       <section>
-        <label className="block font-mono text-xs text-white/50 mb-2 uppercase tracking-widest">
+        <label className="block font-mono text-xs text-white/70 mb-2 uppercase tracking-widest">
           HQ country
         </label>
         <div className="flex flex-wrap gap-1.5">

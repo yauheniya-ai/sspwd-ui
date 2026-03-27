@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Icon } from "@iconify/react";
 import EntryIcon from "./EntryIcon";
+import { IconOpenInNew, IconEmailOutline, IconUser, IconCheck, IconCopy, IconLockOutline, IconEye, IconEyeOff } from "../constants/icons";
 import TagBadge from "./TagBadge";
 import type { PasswordEntry } from "../types";
 
@@ -66,7 +66,7 @@ export default function PasswordCard({ entry, onSelect, selected }: PasswordCard
             className="text-white/25 hover:text-blue-400 transition-colors shrink-0"
             title={entry.url}
           >
-            <Icon icon="mdi:open-in-new" className="text-sm" />
+            <IconOpenInNew className="w-4 h-4" />
           </a>
         )}
       </div>
@@ -74,24 +74,21 @@ export default function PasswordCard({ entry, onSelect, selected }: PasswordCard
       {/* Username / email row */}
       {identifier && (
         <div className="flex items-center gap-2 bg-black/40 border border-white/8 rounded-sm px-3 py-1.5">
-          <Icon icon={entry.email ? "mdi:email-outline" : "mdi:account-outline"} className="text-white/30 text-sm shrink-0" />
+          {entry.email ? <IconEmailOutline className="w-4 h-4 text-white/30 shrink-0" /> : <IconUser className="w-4 h-4 text-white/30 shrink-0" />}
           <span className="font-mono text-xs text-white/60 flex-1 truncate">{identifier}</span>
           <button
             onClick={(e) => { e.stopPropagation(); copy(identifier, "user"); }}
             className="text-white/20 hover:text-white transition-colors shrink-0"
             title={entry.email ? "Copy email" : "Copy username"}
           >
-            <Icon
-              icon={copied === "user" ? "mdi:check" : "mdi:content-copy"}
-              className={`text-xs ${copied === "user" ? "text-green-400" : ""}`}
-            />
+            {copied === "user" ? <IconCheck className="w-3 h-3 text-green-400" /> : <IconCopy className="w-3 h-3" />}
           </button>
         </div>
       )}
 
       {/* Password row */}
       <div className="flex items-center gap-2 bg-black/40 border border-white/8 rounded-sm px-3 py-1.5">
-        <Icon icon="mdi:lock-outline" className="text-white/30 text-sm shrink-0" />
+        <IconLockOutline className="w-4 h-4 text-white/30 shrink-0" />
         <span className="font-mono text-xs text-white/50 flex-1 tracking-widest">
           {pwVisible ? entry.password : "••••••••••••"}
         </span>
@@ -100,17 +97,14 @@ export default function PasswordCard({ entry, onSelect, selected }: PasswordCard
           className="text-white/20 hover:text-white transition-colors shrink-0"
           title={pwVisible ? "Hide" : "Reveal"}
         >
-          <Icon icon={pwVisible ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="text-xs" />
+          {pwVisible ? <IconEyeOff className="w-3 h-3" /> : <IconEye className="w-3 h-3" />}
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); copy(entry.password ?? "", "pwd"); }}
           className="text-white/20 hover:text-white transition-colors shrink-0"
           title="Copy password"
         >
-          <Icon
-            icon={copied === "pwd" ? "mdi:check" : "mdi:content-copy"}
-            className={`text-xs ${copied === "pwd" ? "text-green-400" : ""}`}
-          />
+          {copied === "pwd" ? <IconCheck className="w-3 h-3 text-green-400" /> : <IconCopy className="w-3 h-3" />}
         </button>
       </div>
 

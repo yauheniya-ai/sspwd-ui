@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import PasswordCard from "./PasswordCard";
 import type { FilterState, PasswordEntry } from "../types";
-import { categoryIcon } from "../data/mockData";
-import { Icon } from "@iconify/react";
+import { IconPlus } from "../constants/icons";
+import { CATEGORY_META } from "../constants";
 
 interface MainContentProps {
   entries: PasswordEntry[];
@@ -110,7 +110,7 @@ export default function MainContent({
           <span className="btn-line btn-line-2" />
           <span className="btn-line btn-line-3" />
           <span className="btn-line btn-line-4" />
-          <Icon icon="mdi:plus" className="text-sm" />
+          <IconPlus className="w-4 h-4" />
           Add first entry
         </button>
       </div>
@@ -132,7 +132,7 @@ export default function MainContent({
           <span className="btn-line btn-line-2" />
           <span className="btn-line btn-line-3" />
           <span className="btn-line btn-line-4" />
-          <Icon icon="mdi:plus" className="text-sm" />
+          <IconPlus className="w-4 h-4" />
           Add entry
         </button>
       </div>
@@ -144,12 +144,12 @@ export default function MainContent({
           <section key={category}>
             {/* Category heading */}
             <div className="flex items-center gap-3 mb-4">
-              <Icon icon={categoryIcon(category)} className="text-sm text-white/30 shrink-0" />
-              <h2 className="font-mono text-xs font-semibold text-white/40 uppercase tracking-[0.2em]">
+              {(() => { const CatIcon = CATEGORY_META[category.toLowerCase()]?.icon; return CatIcon ? <CatIcon className="w-4 h-4 text-white/70 shrink-0" /> : null; })()}
+              <h2 className="font-mono text-xs font-semibold text-white/70 uppercase tracking-[0.2em]">
                 {category}
               </h2>
-              <div className="flex-1 h-px bg-white/8" />
-              <span className="font-mono text-xs text-white/25">{items.length}</span>
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="font-mono text-xs text-white/70">{items.length}</span>
             </div>
 
             {/* Cards grid */}

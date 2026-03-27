@@ -1,10 +1,13 @@
-import { Icon } from "@iconify/react";
+import type { SVGProps } from "react";
+import { IconGithub, IconPypi, IconApi, IconBook } from "../constants/icons";
 
-const LINKS = [
-  { label: "GitHub",        href: "https://github.com/yauheniya-ai/sspwd",  icon: "mdi:github" },
-  { label: "PyPI",          href: "https://pypi.org/project/sspwd",          icon: "simple-icons:pypi" },
-  { label: "API Docs",      href: "/api/v1/docs",                            icon: "mdi:api" },
-  { label: "Documentation", href: "/docs",                                   icon: "mdi:book-open-outline" },
+type NavIcon = (props: SVGProps<SVGSVGElement>) => React.ReactElement;
+
+const LINKS: Array<{ label: string; href: string; Icon: NavIcon }> = [
+  { label: "GitHub",        href: "https://github.com/yauheniya-ai/sspwd",  Icon: IconGithub },
+  { label: "PyPI",          href: "https://pypi.org/project/sspwd",          Icon: IconPypi   },
+  { label: "API Docs",      href: "/api/v1/docs",                            Icon: IconApi    },
+  { label: "Documentation", href: "/docs",                                   Icon: IconBook   },
 ];
 
 export default function Footer() {
@@ -21,22 +24,22 @@ export default function Footer() {
 
       {/* Nav links */}
       <nav className="flex items-center gap-6">
-        {LINKS.map((link) => (
+        {LINKS.map(({ label, href, Icon }) => (
           <a
-            key={link.label}
-            href={link.href}
-            target={link.href.startsWith("http") ? "_blank" : undefined}
+            key={label}
+            href={href}
+            target={href.startsWith("http") ? "_blank" : undefined}
             rel="noreferrer"
             className="flex items-center gap-1.5 font-mono text-sm text-white/60 hover:text-white transition-colors"
           >
-            <Icon icon={link.icon} className="text-base" />
-            {link.label}
+            <Icon className="w-4 h-4" />
+            {label}
           </a>
         ))}
       </nav>
 
       {/* Version */}
-      <span className="font-mono text-xs text-white/30">v0.2.1</span>
+      <span className="font-mono text-xs text-white/70">v0.2.10</span>
     </footer>
   );
 }

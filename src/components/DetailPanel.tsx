@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "@iconify/react"; // kept for dynamic circle-flags icons only
+import {
+  IconEye, IconEyeOff, IconCopy, IconCheck,
+  IconLockOutline, IconOpenInNew, IconBuilding,
+  IconChevronUp, IconChevronDown,
+  IconCalendarStar, IconCalendarPlus, IconCalendarEdit,
+  IconPencil, IconDelete,
+} from "../constants/icons";
 import EntryIcon from "./EntryIcon";
 import TagBadge from "./TagBadge";
 import { formatRevenue } from "../types";
@@ -26,12 +33,14 @@ function CopyField({ label, value, secret }: { label: string; value?: string; se
         </span>
         {!empty && secret && (
           <button onClick={() => setVisible(v => !v)} className="text-white/25 hover:text-white transition-colors shrink-0">
-            <Icon icon={visible ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="text-sm" />
+            {visible ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
           </button>
         )}
         {!empty && (
           <button onClick={copy} className="text-white/25 hover:text-white transition-colors shrink-0">
-            <Icon icon={copied ? "mdi:check" : "mdi:content-copy"} className={`text-sm ${copied ? "text-green-400" : ""}`} />
+            {copied
+              ? <IconCheck className="w-4 h-4 text-green-400" />
+              : <IconCopy className="w-4 h-4" />}
           </button>
         )}
       </div>
@@ -66,7 +75,7 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
   if (!entry) {
     return (
       <aside className="flex flex-col items-center justify-center h-full text-white/15 px-6 border-l border-white/10 bg-black/20">
-        <Icon icon="mdi:lock-outline" className="text-4xl mb-3" />
+        <IconLockOutline className="w-9 h-9 mb-3" />
         <p className="font-mono text-xs text-center">Select an entry<br />to view details</p>
       </aside>
     );
@@ -92,7 +101,7 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
         {entry.url && (
           <a href={entry.url} target="_blank" rel="noreferrer"
             className="text-white/25 hover:text-blue-400 transition-colors shrink-0">
-            <Icon icon="mdi:open-in-new" />
+            <IconOpenInNew className="w-4 h-4" />
           </a>
         )}
       </div>
@@ -142,7 +151,7 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
             {c?.icon
               ? <EntryIcon icon={c.icon} title={c.name} size={28} />
               : <div className="h-7 w-7 border border-white/8 rounded-sm flex items-center justify-center bg-black/30 shrink-0">
-                  <Icon icon="mdi:building" className="text-white/18 text-sm" />
+                  <IconBuilding className="w-4 h-4 text-white/18" />
                 </div>
             }
             <span className={`font-mono text-xs font-semibold ${c?.name ? "text-white/75" : "text-white/18 italic"}`}>
@@ -161,7 +170,7 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
                   {/* address toggle */}
                   <button type="button" onClick={() => setAddrOpen(v => !v)}
                     className="ml-auto font-mono text-xs text-white/25 hover:text-white/60 transition-colors flex items-center gap-0.5">
-                    <Icon icon={addrOpen ? "mdi:chevron-up" : "mdi:chevron-down"} className="text-sm" />
+                    {addrOpen ? <IconChevronUp className="w-4 h-4" /> : <IconChevronDown className="w-4 h-4" />}
                     <span>{addrOpen ? "less" : "full address"}</span>
                   </button>
                 </div>
@@ -188,8 +197,8 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
 
         <div className="flex flex-col gap-2 pb-2">
           <div className="flex items-center gap-2">
-            <Icon icon="mdi:calendar-star-outline"
-              className={`text-sm shrink-0 ${entry.userCreatedAt ? "text-white/35" : "text-white/15"}`} />
+            <IconCalendarStar
+              className={`w-4 h-4 shrink-0 ${entry.userCreatedAt ? "text-white/35" : "text-white/15"}`} />
             <span className="font-mono text-xs">
               <span className="text-white/30">Using since&nbsp;</span>
               <span className={entry.userCreatedAt ? "text-white/65" : "text-white/18 italic"}>
@@ -198,14 +207,14 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Icon icon="mdi:calendar-plus-outline" className="text-white/20 text-sm shrink-0" />
+            <IconCalendarPlus className="w-4 h-4 text-white/20 shrink-0" />
             <span className="font-mono text-xs">
               <span className="text-white/25">Added&nbsp;</span>
               <span className="text-white/45">{fmt(entry.createdAt)}</span>
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Icon icon="mdi:calendar-edit-outline" className="text-white/20 text-sm shrink-0" />
+            <IconCalendarEdit className="w-4 h-4 text-white/20 shrink-0" />
             <span className="font-mono text-xs">
               <span className="text-white/25">Updated&nbsp;</span>
               <span className="text-white/45">{fmt(entry.updatedAt)}</span>
@@ -219,11 +228,11 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
       <div className="flex gap-2 px-5 py-4 border-t border-white/10 shrink-0">
         <button onClick={() => onEdit(entry)}
           className="flex-1 flex items-center justify-center gap-1.5 font-mono text-xs border border-blue-700 text-blue-400 hover:bg-blue-700/20 rounded-sm py-2 transition-colors">
-          <Icon icon="mdi:pencil-outline" /> Edit
+          <IconPencil className="w-4 h-4" /> Edit
         </button>
         <button onClick={() => onDelete(entry.id)}
           className="flex-1 flex items-center justify-center gap-1.5 font-mono text-xs border border-red-700 text-red-400 hover:bg-red-700/20 rounded-sm py-2 transition-colors">
-          <Icon icon="mdi:trash-can-outline" /> Delete
+          <IconDelete className="w-4 h-4" /> Delete
         </button>
       </div>
     </aside>
