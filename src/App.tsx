@@ -6,9 +6,49 @@ import MainContent from "./components/MainContent";
 import DetailPanel from "./components/DetailPanel";
 import AddEditModal from "./components/AddEditModal";
 import OwnersModal from "./components/OwnersModal";
-import type { FilterState, IconCatalogueEntry, PasswordEntry } from "./types";
+import type { FilterState, IconCatalogueEntry, IconSource, PasswordEntry } from "./types";
 import { MOCK_COMPANIES, MOCK_ENTRIES } from "./data/mockData";
 import type { Company } from "./types";
+import { IconCacheContext } from "./contexts/IconCacheContext";
+
+/**
+ * After saving an entry that carries an iconify/url icon, call the icon-catalogue
+ * endpoint so the backend registers + starts caching it, then insert/update the
+ * icon in local catalogue state so it appears in the library picker immediately.
+ */
+async function _refreshCatalogueEntry(
+  icon: IconSource | undefined,
+  project: string,
+  setIconCatalogue: React.Dispatch<React.SetStateAction<IconCatalogueEntry[]>>,
+): Promise<void> {
+  if (!icon || icon.type === "letter") return;
+  try {
+    const q   = `?project=${encodeURIComponent(project)}`;
+    const res = await fetch(`/api/v1/icon-catalogue${q}`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ type: icon.type, value: icon.value }),
+    });
+    if (!res.ok) return;
+    const saved = await res.json();
+    const entry: IconCatalogueEntry = {
+      id:        saved.id,
+      type:      saved.type,
+      value:     saved.value,
+      label:     saved.label     ?? undefined,
+      createdAt: saved.created_at ?? undefined,
+      cachedUrl: saved.cached_url ?? undefined,
+    };
+    setIconCatalogue((prev) => {
+      const exists = prev.some((e) => e.type === entry.type && e.value === entry.value);
+      return exists
+        ? prev.map((e) => (e.type === entry.type && e.value === entry.value ? entry : e))
+        : [entry, ...prev];
+    });
+  } catch {
+    // Non-critical — ignore failures
+  }
+}
 
 const DEFAULT_FILTER: FilterState = {
   search: "", tags: [], categories: [], serviceTypes: [], loginMethods: [], countries: [],
@@ -60,10 +100,13 @@ export default function App() {
           id:        e.id,
           type:      e.type,
           value:     e.value,
-          label:     e.label ?? undefined,
+          label:     e.label     ?? undefined,
           createdAt: e.created_at ?? undefined,
+          cachedUrl: e.cached_url ?? undefined,
         } as IconCatalogueEntry))
       );
+      // Fire-and-forget: ask the backend to cache any icons not yet downloaded
+      fetch(`/api/v1/icons/sync?project=${q}`, { method: "POST" }).catch(() => {});
       setEntries((entriesData as any[]).map((e: any) => ({
         id:             e.id,
         title:          e.title,
@@ -73,7 +116,7 @@ export default function App() {
         url:            e.url             ?? undefined,
         notes:          e.notes           ?? undefined,
         icon:           e.icon            ?? undefined,
-        category:       e.category        ?? "Other",
+        category:       (e.category ?? "other").toLowerCase(),
         tags:           e.tags            ?? [],
         serviceType:    e.service_type    ?? "free",
         loginMethods:   e.login_methods   ?? [],
@@ -133,6 +176,18 @@ export default function App() {
     for (const e of entries) counts[e.category] = (counts[e.category] ?? 0) + 1;
     return counts;
   }, [entries]);
+
+  /**
+   * Map from "type:value" → cached local URL.
+   * Used by EntryIcon (via IconCacheContext) to render icons offline.
+   */
+  const iconCacheMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const e of iconCatalogue) {
+      if (e.cachedUrl) m.set(`${e.type}:${e.value}`, e.cachedUrl);
+    }
+    return m;
+  }, [iconCatalogue]);
 
   const handleSave = async (data: Omit<PasswordEntry, "id" | "createdAt" | "updatedAt">) => {
     const now = new Date().toISOString();
@@ -200,7 +255,7 @@ export default function App() {
         url:             data.url             ?? null,
         notes:           data.notes           ?? null,
         icon:            data.icon            ?? null,
-        category:        data.category        ?? "Other",
+        category:        data.category        ?? "other",
         service_type:    data.serviceType     ?? "free",
         tags:            data.tags            ?? [],
         login_methods:   data.loginMethods    ?? [],
@@ -222,6 +277,8 @@ export default function App() {
             ? { ...e, ...data, id: saved.id, updatedAt: saved.updated_at, company: resolvedCompany, companyId: resolvedCompanyId ?? undefined }
             : e
         ));
+        // Refresh catalogue so the updated icon appears in the cache map
+        _refreshCatalogueEntry(data.icon, activeProject, setIconCatalogue);
       } else {
         // create
         const res = await fetch(`/api/v1/entries${q}`, {
@@ -241,6 +298,8 @@ export default function App() {
         };
         setEntries((prev) => [...prev, newEntry]);
         setSelectedId(newEntry.id);
+        // Refresh catalogue so the new icon appears in the cache map
+        _refreshCatalogueEntry(data.icon, activeProject, setIconCatalogue);
       }
     } catch (err: any) {
       alert(err.message || "Could not save entry.");
@@ -344,7 +403,8 @@ export default function App() {
     );
   };
 
-  return (
+    return (
+    <IconCacheContext.Provider value={iconCacheMap}>
     <div className="flex flex-col h-screen bg-neutral-950 text-white font-mono overflow-hidden">
       <Header
         activeProject={activeProject}
@@ -423,5 +483,6 @@ export default function App() {
         />
       )}
     </div>
+    </IconCacheContext.Provider>
   );
 }

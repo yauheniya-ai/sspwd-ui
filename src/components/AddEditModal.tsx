@@ -349,7 +349,7 @@ export default function AddEditModal({
   const [password,    setPassword]    = useState(entry?.password ?? "");
   const [url,         setUrl]         = useState(entry?.url ?? "");
   const [notes,       setNotes]       = useState(entry?.notes ?? "");
-  const [category,    setCategory]    = useState(entry?.category ?? "");
+  const [category,    setCategory]    = useState((entry?.category ?? "").toLowerCase());
   const [tags,        setTags]        = useState<string[]>(entry?.tags ?? []);
   const [serviceType, setServiceType] = useState<ServiceType>(entry?.serviceType ?? "free");
   const [loginMethods, setLoginMethods] = useState<string[]>(entry?.loginMethods ?? []);
@@ -430,7 +430,7 @@ export default function AddEditModal({
       url: url.trim() || undefined,
       notes: notes.trim() || undefined,
       icon: entryIcon,
-      category: category.trim() || "Other",
+      category: category.trim() || "other",
       tags,
       serviceType,
       loginMethods,

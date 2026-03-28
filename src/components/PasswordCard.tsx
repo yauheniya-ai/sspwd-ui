@@ -3,6 +3,7 @@ import EntryIcon from "./EntryIcon";
 import { IconOpenInNew, IconEmailOutline, IconUser, IconCheck, IconCopy, IconLockOutline, IconEye, IconEyeOff } from "../constants/icons";
 import TagBadge from "./TagBadge";
 import type { PasswordEntry } from "../types";
+import { CATEGORY_META } from "../constants";
 
 const SERVICE_TYPE_STYLE: Record<string, string> = {
   free:     "text-green-400 border-green-800",
@@ -53,7 +54,7 @@ export default function PasswordCard({ entry, onSelect, selected }: PasswordCard
               {entry.serviceType}
             </span>
           </div>
-          <span className="font-mono text-xs text-white/40 truncate block">{entry.category}</span>
+          <span className="font-mono text-xs text-white/40 truncate block">{CATEGORY_META[entry.category]?.label ?? entry.category}</span>
         </div>
 
         {/* External link */}

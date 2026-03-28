@@ -11,6 +11,7 @@ import EntryIcon from "./EntryIcon";
 import TagBadge from "./TagBadge";
 import { formatRevenue } from "../types";
 import type { PasswordEntry } from "../types";
+import { CATEGORY_META } from "../constants";
 
 interface DetailPanelProps {
   entry: PasswordEntry | null;
@@ -96,7 +97,7 @@ export default function DetailPanel({ entry, onEdit, onDelete }: DetailPanelProp
         <EntryIcon icon={entry.icon} title={entry.title} size={40} />
         <div className="flex-1 min-w-0">
           <h2 className="font-mono font-bold text-white text-sm truncate">{entry.title}</h2>
-          <p className="font-mono text-xs text-white/35 truncate">{entry.category}</p>
+          <p className="font-mono text-xs text-white/35 truncate">{CATEGORY_META[entry.category]?.label ?? entry.category}</p>
         </div>
         {entry.url && (
           <a href={entry.url} target="_blank" rel="noreferrer"

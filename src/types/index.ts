@@ -9,6 +9,8 @@ export interface IconCatalogueEntry {
   value:      string;
   label?:     string;
   createdAt?: string;
+  /** Local cached URL served by the backend — available when online once synced. */
+  cachedUrl?: string;
 }
 
 export type ServiceType = "free" | "paid";
