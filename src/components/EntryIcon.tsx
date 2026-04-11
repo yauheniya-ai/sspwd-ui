@@ -12,13 +12,16 @@ export default function EntryIcon({ icon, title, size = 32 }: EntryIconProps) {
   const letter     = title.charAt(0).toUpperCase();
   const cachedUrl  = useCachedIconUrl(icon);
 
-  const wrapClass = "flex items-center justify-center rounded-sm overflow-hidden shrink-0 bg-white/5 border border-white/10";
+  const light = icon?.lightBg;
+  const wrapClass = light
+    ? "flex items-center justify-center rounded-sm overflow-hidden shrink-0 bg-white/90 border border-black/10"
+    : "flex items-center justify-center rounded-sm overflow-hidden shrink-0 bg-white/5 border border-white/10";
   const style = { width: size, height: size, minWidth: size };
 
   if (!icon || icon.type === "letter") {
     return (
       <span
-        className={`${wrapClass} font-mono font-bold text-white/60`}
+        className={`${wrapClass} font-mono font-bold ${light ? "text-black/60" : "text-white/60"}`}
         style={{ ...style, fontSize: size * 0.45 }}
       >
         {icon?.value || letter}

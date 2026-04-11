@@ -1,7 +1,7 @@
 export type IconSource =
-  | { type: "iconify"; value: string }
-  | { type: "url";     value: string }
-  | { type: "letter";  value: string };
+  | { type: "iconify"; value: string; lightBg?: boolean }
+  | { type: "url";     value: string; lightBg?: boolean }
+  | { type: "letter";  value: string; lightBg?: boolean };
 
 export interface IconCatalogueEntry {
   id:         number;

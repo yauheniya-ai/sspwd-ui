@@ -73,6 +73,7 @@ function IconPicker({
   );
   const [uploadName,  setUploadName]  = useState("");
   const [uploading,   setUploading]   = useState(false);
+  const [lightBg,     setLightBg]     = useState(value?.lightBg ?? false);
 
   // library tab state
   const [libSearch,    setLibSearch]    = useState("");
@@ -80,19 +81,33 @@ function IconPicker({
   const [libEditLabel, setLibEditLabel] = useState("");
   const [libOpen,      setLibOpen]      = useState(false);
 
-  const previewIcon: IconSource =
-    tab === "library"                   ? (value ?? { type: "letter", value: title.charAt(0).toUpperCase() })
-    : tab === "upload" && uploadedUrl   ? { type: "url",     value: uploadedUrl }
-    : tab === "iconify"                 ? { type: "iconify", value: iconValue }
-    : tab === "url"                     ? { type: "url",     value: iconValue }
-    : { type: "letter", value: iconValue || title.charAt(0).toUpperCase() };
+  const previewIcon: IconSource = (() => {
+    const bg = lightBg || undefined;
+    const base: IconSource =
+      tab === "library"                   ? (value ?? { type: "letter", value: title.charAt(0).toUpperCase() })
+      : tab === "upload" && uploadedUrl   ? { type: "url",     value: uploadedUrl }
+      : tab === "iconify"                 ? { type: "iconify", value: iconValue }
+      : tab === "url"                     ? { type: "url",     value: iconValue }
+      : { type: "letter", value: iconValue || title.charAt(0).toUpperCase() };
+    return bg ? { ...base, lightBg: true } : base;
+  })();
 
-  const emit = (t: IconTab, v: string, up: string | null) => {
-    if (t === "upload" && up)   onChange({ type: "url",     value: up });
-    else if (t === "iconify")   onChange({ type: "iconify", value: v });
-    else if (t === "url")       onChange({ type: "url",     value: v });
+  const withBg = (src: IconSource, bg: boolean): IconSource =>
+    bg ? ({ ...src, lightBg: true } as IconSource) : src;
+
+  const emit = (t: IconTab, v: string, up: string | null, bg = lightBg) => {
+    if (t === "upload" && up)   onChange(withBg({ type: "url",     value: up }, bg));
+    else if (t === "iconify")   onChange(withBg({ type: "iconify", value: v  }, bg));
+    else if (t === "url")       onChange(withBg({ type: "url",     value: v  }, bg));
     else if (t === "library")   { /* handled by clicking catalogue item */ }
-    else                        onChange(v ? { type: "letter", value: v } : undefined);
+    else                        onChange(v ? withBg({ type: "letter", value: v }, bg) : undefined);
+  };
+
+  const toggleLightBg = () => {
+    const next = !lightBg;
+    setLightBg(next);
+    // re-emit current value with updated bg flag
+    if (value) onChange({ ...value, lightBg: next || undefined });
   };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,6 +177,17 @@ function IconPicker({
               {TAB_LABELS[t]}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={toggleLightBg}
+            title="Toggle icon background"
+            className="flex items-center gap-2 ml-0.5"
+          >
+            <div className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${lightBg ? "bg-white/90" : "bg-white/10"}`}>
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-200 ${lightBg ? "translate-x-[18px] bg-black" : "translate-x-0.5 bg-white"}`} />
+            </div>
+            <span className="font-mono text-xs text-white/40">icon background</span>
+          </button>
         </div>
       </div>
 
@@ -229,7 +255,7 @@ function IconPicker({
                         className={`flex items-center gap-3 px-5 py-2.5 cursor-pointer transition-colors border-b border-white/5 ${
                           isSelected ? "bg-blue-700/15" : "hover:bg-white/5"
                         }`}
-                        onClick={() => { onChange(icon); setLibOpen(false); }}
+                        onClick={() => { onChange(withBg(icon, lightBg)); setLibOpen(false); }}
                       >
                         <EntryIcon icon={icon} title={titles[0]} size={24} />
                         <span className="flex-1 font-mono text-xs text-white/70 truncate" title={titles.join(", ")}>{titles.join(", ")}</span>
@@ -256,7 +282,7 @@ function IconPicker({
                         className={`group flex items-center gap-3 px-5 py-2.5 cursor-pointer transition-colors border-b border-white/5 ${
                           isSelected ? "bg-blue-700/15" : "hover:bg-white/5"
                         }`}
-                        onClick={() => { onChange(icon); setLibOpen(false); }}
+                        onClick={() => { onChange(withBg(icon, lightBg)); setLibOpen(false); }}
                       >
                         <EntryIcon icon={icon} title={displayLabel} size={24} />
                         {libEditId === entry.id ? (
