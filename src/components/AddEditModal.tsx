@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import {
-  IconClose, IconCheck, IconPencil, IconDelete,
+  IconClose, IconCheck, IconCopy, IconPencil, IconDelete,
   IconImageMultiple, IconUpload, IconEye, IconEyeOff,
   IconDice, IconChevronDown, IconChevronRight, IconTableEdit,
 } from "../constants/icons";
@@ -382,6 +382,8 @@ export default function AddEditModal({
   const [customMethod, setCustomMethod] = useState("");
   const [userCreatedAt, setUserCreatedAt] = useState(entry?.userCreatedAt?.slice(0, 10) ?? "");
   const [pwVisible,   setPwVisible]   = useState(false);
+  const [pwCopied,    setPwCopied]    = useState(false);
+  const [emailOpen,   setEmailOpen]   = useState(false);
   const [newTag,      setNewTag]      = useState("");
   const [catOpen,     setCatOpen]     = useState(false);
   const [tagOpen,     setTagOpen]     = useState(false);
@@ -539,8 +541,31 @@ export default function AddEditModal({
                 placeholder="e.g. me-dev" autoComplete="off" data-lpignore="true" data-form-type="other" />
             </Field>
             <Field label="Email">
-              <input className={inp} value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="me@example.com" autoComplete="off" data-lpignore="true" data-form-type="other" />
+              <div className="relative">
+                <input className={inp} value={email}
+                  onChange={(e) => { setEmail(e.target.value); setEmailOpen(true); }}
+                  onFocus={() => setEmailOpen(true)}
+                  onBlur={() => setTimeout(() => setEmailOpen(false), 150)}
+                  placeholder="me@example.com" autoComplete="off" data-lpignore="true" data-form-type="other" />
+                {emailOpen && (() => {
+                  const opts = Array.from(new Set(
+                    entries.map((e) => e.email).filter((e): e is string => !!e && e.toLowerCase().includes(email.toLowerCase()))
+                  ));
+                  return opts.length > 0 ? (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-black border border-white/15 rounded-sm max-h-36 overflow-y-auto shadow-lg">
+                      {opts.map((opt) => (
+                        <button key={opt} type="button"
+                          onMouseDown={() => { setEmail(opt); setEmailOpen(false); }}
+                          className={`w-full flex items-center px-3 py-1.5 font-mono text-xs text-left transition-colors ${
+                            email === opt ? "bg-blue-700/20 text-blue-400" : "text-white/60 hover:bg-blue-700/10 hover:text-blue-300"
+                          }`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null;
+                })()}
+              </div>
             </Field>
           </div>
 
@@ -548,13 +573,22 @@ export default function AddEditModal({
           <Field label="Password">
             <div className="flex gap-1">
               <div className="relative flex-1">
-                <input className={`${inp} pr-8`} type={pwVisible ? "text" : "password"}
+                <input className={`${inp} pr-14`} type={pwVisible ? "text" : "password"}
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter or generate" autoComplete="new-password" />
-                <button type="button" onClick={() => setPwVisible((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">
-                  {pwVisible ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
-                </button>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <button type="button"
+                    onClick={() => { if (password) { navigator.clipboard.writeText(password); setPwCopied(true); setTimeout(() => setPwCopied(false), 1500); } }}
+                    disabled={!password}
+                    title="Copy password"
+                    className="text-white/30 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                    {pwCopied ? <IconCheck className="w-3.5 h-3.5 text-green-400" /> : <IconCopy className="w-3.5 h-3.5" />}
+                  </button>
+                  <button type="button" onClick={() => setPwVisible((v) => !v)}
+                    className="text-white/30 hover:text-white transition-colors">
+                    {pwVisible ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
               <button type="button"
                 onClick={() => { setPassword(generatePassword()); setPwVisible(true); }}

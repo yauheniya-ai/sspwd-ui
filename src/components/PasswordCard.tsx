@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import EntryIcon from "./EntryIcon";
 import { IconOpenInNew, IconEmailOutline, IconUser, IconCheck, IconCopy, IconLockOutline, IconEye, IconEyeOff } from "../constants/icons";
 import TagBadge from "./TagBadge";
@@ -19,6 +19,22 @@ interface PasswordCardProps {
 export default function PasswordCard({ entry, onSelect, selected }: PasswordCardProps) {
   const [pwVisible, setPwVisible] = useState(false);
   const [copied, setCopied]       = useState<"user" | "pwd" | null>(null);
+  const pwTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => { if (pwTimerRef.current) clearTimeout(pwTimerRef.current); };
+  }, []);
+
+  const togglePwVisible = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (pwTimerRef.current) clearTimeout(pwTimerRef.current);
+    setPwVisible((v) => {
+      if (!v) {
+        pwTimerRef.current = setTimeout(() => setPwVisible(false), 5000);
+      }
+      return !v;
+    });
+  };
 
   const identifier = entry.email ?? entry.username;
 
@@ -94,7 +110,7 @@ export default function PasswordCard({ entry, onSelect, selected }: PasswordCard
           {pwVisible ? entry.password : "••••••••••••"}
         </span>
         <button
-          onClick={(e) => { e.stopPropagation(); setPwVisible((v) => !v); }}
+          onClick={togglePwVisible}
           className="text-white/20 hover:text-white transition-colors shrink-0"
           title={pwVisible ? "Hide" : "Reveal"}
         >
